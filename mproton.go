@@ -7,7 +7,17 @@ package mproton
 #cgo darwin LDFLAGS: -framework Foundation
 #cgo darwin LDFLAGS: -framework WebKit
 
+//sudo apt-get -y install libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev
+
+#cgo linux openbsd freebsd CXXFLAGS: -DWEBVIEW_GTK -std=c++11
+#cgo linux openbsd freebsd pkg-config: gtk+-3.0 webkit2gtk-4.0 appindicator3-0.1
+
+
+// sudo apt-get install -y electric-fence
+// #cgo linux LDFLAGS: -lefence
+
 #include "mproton.h"
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,7 +55,7 @@ func goTrampoline(a int, param1 *C.char, param2 *C.char) (*C.char, *C.char) {
 
 }
 
-type CgoExpApp interface {
+type mProtonApp interface {
 	Run()
 	// Destroy()
 	SetTitle(path string)
@@ -56,37 +66,36 @@ type CgoExpApp interface {
 	//	SetTitle(title string)
 }
 
-type cgoexpHandle struct {
-	ContentPath string
-	Title       string
+type mprotonHandle struct {
 }
 
-func New() CgoExpApp {
-	h := &cgoexpHandle{}
+func New() mProtonApp {
+	h := &mprotonHandle{}
 	C.initialize()
 	return h
 }
 
-func (handle *cgoexpHandle) Run() {
+func (handle *mprotonHandle) Run() {
 	C.xmain()
 }
 
-func (handle *cgoexpHandle) SetTitle(path string) {
+func (handle *mprotonHandle) SetTitle(path string) {
 	C.set_title(C.CString(path)) // TODO: cleanup mem
 }
 
-func (handle *cgoexpHandle) SetMenuExtraText(text string) {
+func (handle *mprotonHandle) SetMenuExtraText(text string) {
 	C.set_menu_extra_text(C.CString(text))
 }
 
-func (handle *cgoexpHandle) AddMenuExtra(text string) {
+func (handle *mprotonHandle) AddMenuExtra(text string) {
 	C.add_menu_extra_item(C.CString(text))
 }
 
-func (handle *cgoexpHandle) SetContentPath(path string) {
+func (handle *mprotonHandle) SetContentPath(path string) {
 	C.add_content_path(C.CString(path))
 }
 
-func (handle *cgoexpHandle) Bind(name string, callback func(string) (string, error)) {
+func (handle *mprotonHandle) Bind(name string, callback func(string) (string, error)) {
 	registerCallback(name, callback)
+	C.add_script_message_handler(C.CString(name))
 }

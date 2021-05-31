@@ -1,4 +1,5 @@
-//
+// +build darwin
+
 //  main.m
 //  cmini
 //
@@ -32,21 +33,15 @@
     extern const char * goCallbackDispatcher(const void * _Nonnull, const char * _Nonnull);
     
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
-        
-        NSString * name = message.name;
-        NSString * body = message.body;
-        
-        // const char * resssult = goCallbackDispatcher([name UTF8String], [body UTF8String]);
-        const char *extractedExpr = [name UTF8String];
-        const char *extractedExpr2 = [body UTF8String];
-        struct goTrampoline_return result = goTrampoline(17, (char*)(extractedExpr), (char*)(extractedExpr2));
+        struct goTrampoline_return result = goTrampoline(17, 
+			(char*)([message.name UTF8String]), 
+			(char*)([message.body UTF8String]));
         
         NSString * r0 = result.r0 != NULL ? [NSString stringWithUTF8String:result.r0] : NULL;
         NSString * r1 = result.r1 != NULL ? [NSString stringWithUTF8String:result.r1] : NULL;
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            
-            replyHandler(r0, r1);
+			replyHandler(r0, r1);
         });
     });
 }
@@ -72,8 +67,10 @@ NSApplicationDelegate
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
     NSLog(@"in applicationShouldTerminateAfterLastWindowClosed");
+
+	[NSApp stop:nil];   
     
-    return TRUE;
+	return FALSE;
 }
 
 static NSWindow * createWindow(id appName) {
@@ -109,11 +106,8 @@ static NSMenu * createMainMenu(id appName) {
 static NSStatusItem * createMenuExtra() {
     NSStatusItem * statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
     statusItem.button.title= @"🌯";
-    
-    
+     
     NSMenu *menu = [[NSMenu alloc] init];
-    [menu addItemWithTitle:@"Open Feedbin" action:@selector(openFeedbin:) keyEquivalent:@""];
-    [menu addItemWithTitle:@"Refresh" action:@selector(getUnreadEntries:) keyEquivalent:@""];
     [menu addItem:[NSMenuItem separatorItem]]; // A thin grey line
     [menu addItemWithTitle:@"Quit" action:@selector(terminate:) keyEquivalent:@"Q"];
     statusItem.menu = menu;
@@ -134,21 +128,17 @@ static WKWebView * createWebView(NSRect frame, id handler) {
     WKWebView *webView = [[WKWebView alloc]
                           initWithFrame:frame
                           configuration:theConfiguration];
-    // webView.navigationDelegate = self;
-    NSURL *nsurl=[NSURL URLWithString:@"http://www.apple.com"];
-    NSURLRequest *nsrequest=[NSURLRequest requestWithURL:nsurl];
-    [webView loadRequest:nsrequest];
+
+    // NSURL *nsurl=[NSURL URLWithString:@"http://www.apple.com"];
+    // NSURLRequest *nsrequest=[NSURLRequest requestWithURL:nsurl];
+    // [webView loadRequest:nsrequest];
     
     // NSURL *url = [NSURL URLWithString:@"file:///Users/iokulist/Github/okigan/proton2/protonappui/dist/index.html"];
     // NSString *html = [NSString stringWithContentsOfURL:url encoding:NSUTF8StringEncoding error:nil];
     // NSURL *baseUrl = [NSURL URLWithString:@""];
     
     // [webView loadHTMLString:html baseURL:baseUrl];
-    
-    [userContentController addScriptMessageHandlerWithReply:handler
-                                               contentWorld:WKContentWorld.pageWorld
-                                                       name:@"mycallback1"];
-    
+        
     return webView;
 }
 
@@ -208,8 +198,7 @@ int main(){
 }
 #endif
 
-
-int initialize() {
+int initialize(void) {
     g_appContext = [AppContext alloc];
     g_appContext.window = createWindow(@"my new name");
     g_appContext.statusItem = createMenuExtra();
@@ -223,7 +212,6 @@ int set_title (const char* title) {
     
     return 0;
 }
-
 
 int set_menu_extra_text (const char* text) {
     
@@ -243,6 +231,8 @@ int add_menu_extra_item (const char* text) {
 }
 
 int add_content_path (const char* _Nullable path) {
+	// NSLog([NSString stringWithUTF8String:path]);
+
     NSURL *url = [NSURL URLWithString:[NSString stringWithUTF8String:path] ];
     NSString *html = [NSString stringWithContentsOfURL:url encoding:NSUTF8StringEncoding error:nil];
     NSURL *baseUrl = [NSURL URLWithString:@""];
@@ -252,4 +242,14 @@ int add_content_path (const char* _Nullable path) {
     return 0;
 }
 
+int add_script_message_handler(const char * _Nullable name) {
+	NSString * ns_name = [NSString stringWithUTF8String:name];
+    
+   [g_appContext.webView.configuration.userContentController
+    addScriptMessageHandlerWithReply:g_appContext
+    contentWorld:WKContentWorld.pageWorld
+    name:ns_name];
+
+	return 0;
+}
 
