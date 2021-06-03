@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/okigan/mproton"
 )
@@ -13,8 +14,13 @@ func mycallback1(param string) (string, error) {
 }
 
 func main() {
-	// path, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	path, err := os.Getwd()
+	if len(os.Args) == 2 && os.Args[1] == "--self-test" {
+		print("self test complete.\n")
+		return
+	}
+
+	path, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	// path, err := os.Getwd()
 	if err != nil {
 		println(err)
 	}

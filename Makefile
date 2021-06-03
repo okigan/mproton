@@ -10,5 +10,18 @@ install:
 	$(ROOT_DIR)/scripts/$(UNAME)/install
 	
 
+.PHONY: install-ui
+install-ui:
+	cd cmd/exampleapp/protonappui && yarn install
+
+.PHONY: build-ui
+build-ui:
+	cd cmd/exampleapp/protonappui && yarn build
+
+.PHONY: build-exampleapp
+build-exampleapp:
+	cd $(ROOT_DIR)/cmd/exampleapp && go build -v ./...
+
 .PHONY: self-test
-self-test:
+self-test: build-exampleapp
+	$(ROOT_DIR)/cmd/exampleapp/exampleapp --self-test
