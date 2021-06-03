@@ -18,7 +18,7 @@ jobs:
           token: ${{ secrets.REPO_PAT }}
           submodules: true
       - name: install
-        run: make install
+        run: sudo make install
       - name: build
         run: make build
       - name: self-test

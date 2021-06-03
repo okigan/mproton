@@ -4,9 +4,7 @@ build:
 
 .PHONY: install
 install:
-	add-apt-repository -y ppa:longsleep/golang-backports
-	apt update
-	apt install -y golang-go libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev
+	./scripts/linux/install
 	
 
 .PHONY: self-test
