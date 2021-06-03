@@ -9,3 +9,7 @@
 **/yarn-error.log*
 **/_obj
 cmd/exampleapp/exampleapp
+cmd/exampleapp/exampleapp.exe
+cmd/exampleapp/WebView2Loader.dll
+**/__debug_bin.WebView2
+**/EBWebView

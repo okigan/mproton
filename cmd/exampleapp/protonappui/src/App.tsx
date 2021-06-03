@@ -10,6 +10,7 @@ declare var ping: pingInterface;
 
 interface Window {
   webkit?: any;
+  chrome?: any;
 }
 
 declare var window: Window;
@@ -18,8 +19,10 @@ function App() {
   const submitForm = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
-      var promise = window.webkit.messageHandlers.mycallback1.postMessage("Hello from typescript1!");
-      promise = window.webkit.messageHandlers.mycallback1.postMessage("Hello from typescript2!");
+      var promise;
+      // promise = window.webkit.messageHandlers.mycallback1.postMessage("Hello from typescript1!");
+      // promise = window.webkit.messageHandlers.mycallback1.postMessage("Hello from typescript2!");
+      promise = window.chrome.webview.postMessage("Hello from typescript2")
 
       promise.then(
         function(result: any) {
