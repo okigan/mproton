@@ -1,0 +1,25 @@
+name: CI
+
+on: [push,pull_request,workflow_dispatch]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: step1
+        run: bash -c "pwd;  ls -la"
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.REPO_PAT }}
+          submodules: true
+      - name: install
+        run: make install
+      - name: build
+        run: make build
+      - name: self-test
+        run: make self-test
