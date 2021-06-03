@@ -21,6 +21,7 @@
 - (void)userContentController:(nonnull WKUserContentController *)userContentController
       didReceiveScriptMessage:(nonnull WKScriptMessage *)message
                  replyHandler:(nonnull void (^)(id _Nullable, NSString * _Nullable))replyHandler;
+
 @end
 
 @implementation AppContext
@@ -39,6 +40,9 @@
         
         NSString * r0 = result.r0 != NULL ? [NSString stringWithUTF8String:result.r0] : NULL;
         NSString * r1 = result.r1 != NULL ? [NSString stringWithUTF8String:result.r1] : NULL;
+
+        free(result.r0);
+        free(result.r1);
         
         dispatch_async(dispatch_get_main_queue(), ^{
 			replyHandler(r0, r1);
@@ -125,6 +129,21 @@ static WKWebView * createWebView(NSRect frame, id handler) {
     WKUserContentController *userContentController = [[WKUserContentController alloc] init];
     theConfiguration.userContentController = userContentController;
     
+    
+    // [userContentController addScriptMessageHandler:g_appContext name:@"external"];
+    NSString * name = @"external";
+    [userContentController addScriptMessageHandlerWithReply:g_appContext
+                                               contentWorld:WKContentWorld.pageWorld 
+                                                       name:name];
+    
+
+    NSString * script = [NSString stringWithFormat:@"window.external = { invoke: s => window.webkit.messageHandlers.%@.postMessage(s)};", name];;
+    
+    [userContentController addUserScript:[[WKUserScript alloc] initWithSource:script
+                                                                injectionTime:WKUserScriptInjectionTimeAtDocumentStart
+                                                             forMainFrameOnly:YES]];
+
+    
     WKWebView *webView = [[WKWebView alloc]
                           initWithFrame:frame
                           configuration:theConfiguration];
@@ -138,7 +157,6 @@ static WKWebView * createWebView(NSRect frame, id handler) {
     // NSURL *baseUrl = [NSURL URLWithString:@""];
     
     // [webView loadHTMLString:html baseURL:baseUrl];
-        
     return webView;
 }
 

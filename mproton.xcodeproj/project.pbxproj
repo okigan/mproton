@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5728617C2662B17E006FA264 /* mproton.m in Sources */ = {isa = PBXBuildFile; fileRef = 5728617B2662B17E006FA264 /* mproton.m */; };
+		57103D61266821A500B33102 /* mproton_darwin.m in Sources */ = {isa = PBXBuildFile; fileRef = 57103D60266821A500B33102 /* mproton_darwin.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -23,7 +23,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		5728617B2662B17E006FA264 /* mproton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = mproton.m; sourceTree = "<group>"; };
+		57103D60266821A500B33102 /* mproton_darwin.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = mproton_darwin.m; sourceTree = "<group>"; };
 		57D8B6152660C67F0059C354 /* cmini */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = cmini; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -41,7 +41,7 @@
 		57D8B60C2660C67F0059C354 = {
 			isa = PBXGroup;
 			children = (
-				5728617B2662B17E006FA264 /* mproton.m */,
+				57103D60266821A500B33102 /* mproton_darwin.m */,
 				57D8B6162660C67F0059C354 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -87,7 +87,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 57D8B6102660C67F0059C354 /* Build configuration list for PBXProject "cmini" */;
+			buildConfigurationList = 57D8B6102660C67F0059C354 /* Build configuration list for PBXProject "mproton" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -110,7 +110,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5728617C2662B17E006FA264 /* mproton.m in Sources */,
+				57103D61266821A500B33102 /* mproton_darwin.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -258,7 +258,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		57D8B6102660C67F0059C354 /* Build configuration list for PBXProject "cmini" */ = {
+		57D8B6102660C67F0059C354 /* Build configuration list for PBXProject "mproton" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				57D8B61A2660C67F0059C354 /* Debug */,

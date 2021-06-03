@@ -23,12 +23,18 @@ package mproton
 #include <stdlib.h>
 */
 import "C"
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
+var callbackMapMutex sync.RWMutex
 var callbackMap = make(map[string]func(v string) (string, error))
 
 func registerCallback(name string, callback func(v string) (string, error)) int {
+	callbackMapMutex.Lock()
 	callbackMap[name] = callback
+	callbackMapMutex.Unlock()
 	return 0
 }
 
@@ -38,9 +44,11 @@ func goTrampoline(a int, param1 *C.char, param2 *C.char) (*C.char, *C.char) {
 	p2 := C.GoString(param2)
 
 	println("[golang]", a, p1, p2)
-	callback := callbackMap[p1]
+	callbackMapMutex.RLock()
+	callback, ok := callbackMap[p1]
+	callbackMapMutex.RUnlock()
 
-	if callback == nil {
+	if !ok {
 		msg := fmt.Sprintf("No callback registered for: %s", p1)
 		return nil, C.CString(msg)
 	}
