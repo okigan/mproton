@@ -13,10 +13,10 @@ package mproton
 #cgo linux openbsd freebsd pkg-config: gtk+-3.0 webkit2gtk-4.0 appindicator3-0.1
 
 
-#cgo windows CFLAGS: -std=c11
 #cgo windows CXXFLAGS: -std=c++11
-#cgo windows CXXFLAGS: -IC:/Users/User/Downloads/Microsoft.Web.WebView2.1.0.818.41/build/native/include
-#cgo windows LDFLAGS: -LC:/Users/User/Downloads/Microsoft.Web.WebView2.1.0.818.41/build/native/x64/
+#cgo windows CXXFLAGS: -I./Microsoft.Web.WebView2.Sdk/build/native/include
+#cgo windows CXXFLAGS: -I./Windows/include
+#cgo windows LDFLAGS: -L./Microsoft.Web.WebView2.Sdk/build/native/x64/
 #cgo windows LDFLAGS: -lole32 -lWebView2Loader
 
 // sudo apt-get install -y electric-fence
