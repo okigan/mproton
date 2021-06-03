@@ -12,7 +12,10 @@
 
 #include "mproton.h"
 
-@interface AppContext : NSObject <WKScriptMessageHandlerWithReply>
+@interface AppContext : NSObject <
+//    WKScriptMessageHandlerWithReply,
+    WKScriptMessageHandler
+>
 @property(nonatomic, retain)  NSWindow  * _Nullable window;
 @property(nonatomic, retain)  NSMenu  * _Nullable mainMenu;
 @property(nonatomic, retain)  NSStatusItem * _Nullable statusItem;
@@ -21,6 +24,9 @@
 - (void)userContentController:(nonnull WKUserContentController *)userContentController
       didReceiveScriptMessage:(nonnull WKScriptMessage *)message
                  replyHandler:(nonnull void (^)(id _Nullable, NSString * _Nullable))replyHandler;
+
+- (void)userContentController:(nonnull WKUserContentController *)userContentController
+      didReceiveScriptMessage:(nonnull WKScriptMessage *)message;
 
 @end
 
@@ -48,6 +54,11 @@
 			replyHandler(r0, r1);
         });
     });
+}
+
+- (void)userContentController:(nonnull WKUserContentController *)userContentController
+      didReceiveScriptMessage:(nonnull WKScriptMessage *)message {
+    NSLog(@"[objc] int WKScriptMessageHandler callback called");
 }
 @end
 
@@ -132,11 +143,13 @@ static WKWebView * createWebView(NSRect frame, id handler) {
     
     // [userContentController addScriptMessageHandler:g_appContext name:@"external"];
     NSString * name = @"external";
-    [userContentController addScriptMessageHandlerWithReply:g_appContext
-                                               contentWorld:WKContentWorld.pageWorld 
+//    [userContentController addScriptMessageHandlerWithReply:g_appContext
+//                                               contentWorld:WKContentWorld.pageWorld
+//                                                       name:name];
+    
+    [userContentController addScriptMessageHandler:g_appContext
                                                        name:name];
     
-
     NSString * script = [NSString stringWithFormat:@"window.external = { invoke: s => window.webkit.messageHandlers.%@.postMessage(s)};", name];;
     
     [userContentController addUserScript:[[WKUserScript alloc] initWithSource:script
@@ -263,9 +276,13 @@ int add_content_path (const char* _Nullable path) {
 int add_script_message_handler(const char * _Nullable name) {
 	NSString * ns_name = [NSString stringWithUTF8String:name];
     
+//   [g_appContext.webView.configuration.userContentController
+//    addScriptMessageHandlerWithReply:g_appContext
+//    contentWorld:WKContentWorld.pageWorld
+//    name:ns_name];
+    
    [g_appContext.webView.configuration.userContentController
-    addScriptMessageHandlerWithReply:g_appContext
-    contentWorld:WKContentWorld.pageWorld
+    addScriptMessageHandler:g_appContext
     name:ns_name];
 
 	return 0;
