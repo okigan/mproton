@@ -1,3 +1,4 @@
+ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 UNAME := $(shell uname)
 
 .PHONY: build
@@ -6,10 +7,8 @@ build:
 
 .PHONY: install
 install:
-	./scripts/$(UNAME)/install
+	$(ROOT_DIR)/scripts/$(UNAME)/install
 	
 
 .PHONY: self-test
 self-test:
-
-

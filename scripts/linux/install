@@ -7,4 +7,7 @@ set -o xtrace
 
 add-apt-repository -y ppa:longsleep/golang-backports
 apt update
-apt install -y golang-go libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev
+apt install -y golang-go 
+
+apt update
+apt install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev
