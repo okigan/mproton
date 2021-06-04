@@ -121,7 +121,7 @@ int main(int argc, char **argv) { return xmain(); }
 #endif
 
 extern "C" {
-int initialize(void) {
+int prtn_initialize(void) {
   HINSTANCE hInstance = GetModuleHandle(NULL);
   HANDLE himage =
       LoadImage(hInstance, IDI_APPLICATION, IMAGE_ICON,
@@ -216,18 +216,18 @@ int initialize(void) {
   return 0;
 }
 
-int set_title(const char *title) { return SetWindowTextA(hMainWnd, title); }
+int prtn_set_title(const char *title) { return SetWindowTextA(hMainWnd, title); }
 
-int set_menu_extra_text(const char *text) { return 0; }
+int prtn_set_menu_extra_text(const char *text) { return 0; }
 
-int add_menu_extra_item(const char *text) { return 0; }
+int prtn_add_menu_extra_item(const char *text) { return 0; }
 LPWSTR to_lpwstr(const std::string s) {
   int n = MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, NULL, 0);
   wchar_t *ws = new wchar_t[n];
   MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, ws, n);
   return ws;
 }
-int add_content_path(const char *path) {
+int prtn_add_content_path(const char *path) {
   std::cout << "about to navigate" << std::endl;
 
   if (webview2 != NULL) {
@@ -238,5 +238,5 @@ int add_content_path(const char *path) {
   return 0;
 }
 
-int add_script_message_handler(const char *name) { return 0; }
+int prtn_add_script_message_handler(const char *name) { return 0; }
 }

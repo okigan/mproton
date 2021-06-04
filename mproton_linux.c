@@ -106,28 +106,28 @@ int main(int    argc,
 
 
 
-int initialize(void) {
+int prtn_initialize(void) {
     return 0;
 }
 
-int set_title (const char* title) {
+int prtn_set_title (const char* title) {
         return 0;
 }
 
-int set_menu_extra_text (const char* text) {
+int prtn_set_menu_extra_text (const char* text) {
     return 0;
 }
 
-int add_menu_extra_item (const char* text) {
+int prtn_add_menu_extra_item (const char* text) {
     
     return 0;
 }
 
-int add_content_path (const char* _Nullable path) {
+int prtn_add_content_path (const char* _Nullable path) {
     return 0;
 }
 
-int add_script_message_handler(const char * _Nullable name) {
+int prtn_add_script_message_handler(const char * _Nullable name) {
 
 	return 0;
 }

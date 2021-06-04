@@ -44,12 +44,12 @@ func registerCallback(name string, callback func(v string) (string, error)) int 
 	return 0
 }
 
-//export goTrampoline
-func goTrampoline(a int, param1 *C.char, param2 *C.char) (*C.char, *C.char) {
+//export prtn_goTrampoline
+func prtn_goTrampoline(param1 *C.char, param2 *C.char) (*C.char, *C.char) {
 	p1 := C.GoString(param1)
 	p2 := C.GoString(param2)
 
-	println("[golang]", a, p1, p2)
+	println("[golang]", p1, p2)
 	callbackMapMutex.RLock()
 	callback, ok := callbackMap[p1]
 	callbackMapMutex.RUnlock()
@@ -85,7 +85,7 @@ type mprotonHandle struct {
 
 func New() mProtonApp {
 	h := &mprotonHandle{}
-	C.initialize()
+	C.prtn_initialize()
 	return h
 }
 
@@ -94,22 +94,22 @@ func (handle *mprotonHandle) Run() {
 }
 
 func (handle *mprotonHandle) SetTitle(path string) {
-	C.set_title(C.CString(path)) // TODO: cleanup mem
+	C.prtn_set_title(C.CString(path)) // TODO: cleanup mem
 }
 
 func (handle *mprotonHandle) SetMenuExtraText(text string) {
-	C.set_menu_extra_text(C.CString(text))
+	C.prtn_set_menu_extra_text(C.CString(text))
 }
 
 func (handle *mprotonHandle) AddMenuExtra(text string) {
-	C.add_menu_extra_item(C.CString(text))
+	C.prtn_add_menu_extra_item(C.CString(text))
 }
 
 func (handle *mprotonHandle) SetContentPath(path string) {
-	C.add_content_path(C.CString(path))
+	C.prtn_add_content_path(C.CString(path))
 }
 
 func (handle *mprotonHandle) Bind(name string, callback func(string) (string, error)) {
 	registerCallback(name, callback)
-	C.add_script_message_handler(C.CString(name))
+	C.prtn_add_script_message_handler(C.CString(name))
 }

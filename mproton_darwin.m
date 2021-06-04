@@ -21,9 +21,9 @@
 @property(nonatomic, retain)  NSStatusItem * _Nullable statusItem;
 @property(nonatomic, retain)  WKWebView * _Nullable webView;
 
-- (void)userContentController:(nonnull WKUserContentController *)userContentController
-      didReceiveScriptMessage:(nonnull WKScriptMessage *)message
-                 replyHandler:(nonnull void (^)(id _Nullable, NSString * _Nullable))replyHandler;
+// - (void)userContentController:(nonnull WKUserContentController *)userContentController
+//       didReceiveScriptMessage:(nonnull WKScriptMessage *)message
+//                  replyHandler:(nonnull void (^)(id _Nullable, NSString * _Nullable))replyHandler;
 
 - (void)userContentController:(nonnull WKUserContentController *)userContentController
       didReceiveScriptMessage:(nonnull WKScriptMessage *)message;
@@ -31,34 +31,55 @@
 @end
 
 @implementation AppContext
-- (void)userContentController:(nonnull WKUserContentController *)userContentController
-      didReceiveScriptMessage:(nonnull WKScriptMessage *)message
-                 replyHandler:(nonnull void (^)(id _Nullable, NSString * _Nullable))replyHandler {
+// - (void)userContentController:(nonnull WKUserContentController *)userContentController
+//       didReceiveScriptMessage:(nonnull WKScriptMessage *)message
+//                  replyHandler:(nonnull void (^)(id _Nullable, NSString * _Nullable))replyHandler {
     
-    NSLog(@"[objc] WKScriptMessageHandlerWithReply callback called");
+//     NSLog(@"[objc] WKScriptMessageHandlerWithReply callback called");
     
-    extern const char * goCallbackDispatcher(const void * _Nonnull, const char * _Nonnull);
+//     extern const char * goCallbackDispatcher(const void * _Nonnull, const char * _Nonnull);
     
-    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
-        struct goTrampoline_return result = goTrampoline(17, 
-			(char*)([message.name UTF8String]), 
-			(char*)([message.body UTF8String]));
+//     dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+//         struct goTrampoline_return result = prtn_goTrampoline( 
+// 			(char*)([message.name UTF8String]), 
+// 			(char*)([message.body UTF8String]));
         
-        NSString * r0 = result.r0 != NULL ? [NSString stringWithUTF8String:result.r0] : NULL;
-        NSString * r1 = result.r1 != NULL ? [NSString stringWithUTF8String:result.r1] : NULL;
+//         NSString * r0 = result.r0 != NULL ? [NSString stringWithUTF8String:result.r0] : NULL;
+//         NSString * r1 = result.r1 != NULL ? [NSString stringWithUTF8String:result.r1] : NULL;
 
-        free(result.r0);
-        free(result.r1);
+//         free(result.r0);
+//         free(result.r1);
         
-        dispatch_async(dispatch_get_main_queue(), ^{
-			replyHandler(r0, r1);
-        });
-    });
-}
+//         dispatch_async(dispatch_get_main_queue(), ^{
+// 			replyHandler(r0, r1);
+//         });
+//     });
+// }
 
 - (void)userContentController:(nonnull WKUserContentController *)userContentController
       didReceiveScriptMessage:(nonnull WKScriptMessage *)message {
     NSLog(@"[objc] int WKScriptMessageHandler callback called");
+
+    NSDictionary *paramDict = message.body;
+    
+//    for(NSString *key in [paramDict allKeys]) {
+//        NSLog(@"%@:%@", key, [paramDict objectForKey:key]);
+//    }
+
+    const char *name = [message.name UTF8String];
+    const char *param = [[paramDict objectForKey:@"param"] UTF8String ];
+
+    struct prtn_goTrampoline_return result = prtn_goTrampoline((char*)(name), (char*)(param));
+
+    NSString * r0 = result.r0 != NULL ? [NSString stringWithUTF8String:result.r0] : NULL;
+    NSString * r1 = result.r1 != NULL ? [NSString stringWithUTF8String:result.r1] : NULL;
+
+    free(result.r0);
+    free(result.r1);
+
+    NSString *promiseId = [paramDict objectForKey:@"promiseId"];
+    NSString *javaScript = [NSString stringWithFormat:@"_proton_resolvePromise('%@','%@', '%@');",promiseId, r0, r1];
+    [self.webView evaluateJavaScript:javaScript completionHandler:nil];
 }
 @end
 
@@ -120,7 +141,7 @@ static NSMenu * createMainMenu(id appName) {
 
 static NSStatusItem * createMenuExtra() {
     NSStatusItem * statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
-    statusItem.button.title= @"🌯";
+    statusItem.button.title= @"☄️";
      
     NSMenu *menu = [[NSMenu alloc] init];
     [menu addItem:[NSMenuItem separatorItem]]; // A thin grey line
@@ -128,6 +149,35 @@ static NSStatusItem * createMenuExtra() {
     statusItem.menu = menu;
     
     return statusItem;
+}
+
+static
+void registerScriptMessageHandler(WKUserContentController *userContentController, NSString * name) {
+    NSString * javascript = [NSString stringWithFormat:
+@"function _proton_%@_invoke(s) {  \n"
+@"    var promise = new Promise(function(resolve, reject) {  \n"
+@"        var promiseId = _proton_genPromiseSequenceNumber();  \n"
+@"        _proton_promises[promiseId] = { resolve, reject };  \n"
+@"        window.webkit.messageHandlers.%@.postMessage({ promiseId: promiseId, param: s });  \n"
+@"    });  \n"
+@"    return promise;  \n"
+@"}  \n"
+@"  \n"
+@"window.proton['%@'] = {  \n"
+@"    invoke: _proton_%@_invoke  \n"
+@"}  "
+,
+        name, name, name, name];
+    
+    [userContentController addUserScript:[[WKUserScript alloc] initWithSource:javascript
+                                                                injectionTime:WKUserScriptInjectionTimeAtDocumentStart
+                                                             forMainFrameOnly:YES]];
+     [userContentController addScriptMessageHandler:g_appContext name:name];
+}
+
+static
+void executeJS(WKWebView * webView, NSString * javaScript) {
+        [webView evaluateJavaScript:javaScript completionHandler:nil];
 }
 
 static WKWebView * createWebView(NSRect frame, id handler) {
@@ -142,20 +192,42 @@ static WKWebView * createWebView(NSRect frame, id handler) {
     
     
     // [userContentController addScriptMessageHandler:g_appContext name:@"external"];
-    NSString * name = @"external";
+    // NSString * name = @"external";
 //    [userContentController addScriptMessageHandlerWithReply:g_appContext
 //                                               contentWorld:WKContentWorld.pageWorld
 //                                                       name:name];
     
-    [userContentController addScriptMessageHandler:g_appContext
-                                                       name:name];
-    
-    NSString * script = [NSString stringWithFormat:@"window.external = { invoke: s => window.webkit.messageHandlers.%@.postMessage(s)};", name];;
-    
-    [userContentController addUserScript:[[WKUserScript alloc] initWithSource:script
+    // [userContentController addScriptMessageHandler:g_appContext name:name];
+   
+    NSString * script1 =
+@"var _proton_promises = {};  "
+@"var _proton_promiseSeq = 0;  "
+@"window.proton = {};"
+@"function _proton_genPromiseSequenceNumber() {  "
+@"    function uuidv4() {  "
+@"        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {  "
+@"            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);  "
+@"            return v.toString(16);  "
+@"        });  "
+@"    }  "
+@"    _proton_promiseSeq = _proton_promiseSeq + 1;  "
+@"    return _proton_promiseSeq;  "
+@"}  "
+@"function _proton_resolvePromise(promiseId, data, error) {  "
+@"    if (error) {  "
+@"        _proton_promises[promiseId].reject(data);  "
+@"    } else {  "
+@"        _proton_promises[promiseId].resolve(data);  "
+@"    }  "
+@"    delete _proton_promises[promiseId];  "
+@"}  "
+;
+    [userContentController addUserScript:[[WKUserScript alloc] initWithSource:script1
                                                                 injectionTime:WKUserScriptInjectionTimeAtDocumentStart
                                                              forMainFrameOnly:YES]];
 
+
+    // registerScriptMessageHandler(userContentController, name);
     
     WKWebView *webView = [[WKWebView alloc]
                           initWithFrame:frame
@@ -200,10 +272,9 @@ static WKWebView * createWebView(NSRect frame, id handler) {
 - (void)  MenuExtraCallback: (NSMenuItem*) sender {
     const char *extractedExpr = [@"p111" UTF8String];
     const char *extractedExpr2 = [@"p222" UTF8String];
-    struct goTrampoline_return result = goTrampoline(17, (char*)(extractedExpr), (char*)(extractedExpr2));
+    struct prtn_goTrampoline_return result = prtn_goTrampoline((char*)(extractedExpr), (char*)(extractedExpr2));
     
 }
-
 @end
 
 
@@ -229,7 +300,7 @@ int main(){
 }
 #endif
 
-int initialize(void) {
+int prtn_initialize(void) {
     g_appContext = [AppContext alloc];
     g_appContext.window = createWindow(@"my new name");
     g_appContext.statusItem = createMenuExtra();
@@ -237,21 +308,21 @@ int initialize(void) {
     return 0;
 }
 
-int set_title (const char* title) {
+int prtn_set_title (const char* title) {
     
     [g_appContext.window setTitle:[NSString stringWithUTF8String:title]];
     
     return 0;
 }
 
-int set_menu_extra_text (const char* text) {
+int prtn_set_menu_extra_text (const char* text) {
     
     g_appContext.statusItem.button.title = [NSString stringWithUTF8String:text];
     
     return 0;
 }
 
-int add_menu_extra_item (const char* text) {
+int prtn_add_menu_extra_item (const char* text) {
     
     [g_appContext.statusItem.menu
      addItemWithTitle:[NSString stringWithUTF8String:text]
@@ -261,7 +332,7 @@ int add_menu_extra_item (const char* text) {
     return 0;
 }
 
-int add_content_path (const char* _Nullable path) {
+int prtn_add_content_path (const char* _Nullable path) {
 	// NSLog([NSString stringWithUTF8String:path]);
 
     NSURL *url = [NSURL URLWithString:[NSString stringWithUTF8String:path] ];
@@ -273,17 +344,26 @@ int add_content_path (const char* _Nullable path) {
     return 0;
 }
 
-int add_script_message_handler(const char * _Nullable name) {
+int prtn_add_script_message_handler(const char * _Nullable name) {
+	// NSLog([NSString stringWithUTF8String:name]);
+
 	NSString * ns_name = [NSString stringWithUTF8String:name];
+    
+    registerScriptMessageHandler(g_appContext.webView.configuration.userContentController, ns_name);
+
+	return 0;
+}
+
+
+int prtn_execute_js(const char * _Nullable script) {
+	NSString * ns_script = [NSString stringWithUTF8String:script];
     
 //   [g_appContext.webView.configuration.userContentController
 //    addScriptMessageHandlerWithReply:g_appContext
 //    contentWorld:WKContentWorld.pageWorld
 //    name:ns_name];
     
-   [g_appContext.webView.configuration.userContentController
-    addScriptMessageHandler:g_appContext
-    name:ns_name];
+    executeJS(g_appContext.webView, ns_script);
 
 	return 0;
 }

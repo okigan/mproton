@@ -11,6 +11,8 @@ declare var ping: pingInterface;
 interface Window {
   webkit?: any;
   chrome?: any;
+  external?: any;
+  proton?: any;
 }
 
 declare var window: Window;
@@ -22,7 +24,8 @@ function App() {
       var promise;
       // promise = window.webkit.messageHandlers.mycallback1.postMessage("Hello from typescript1!");
       // promise = window.webkit.messageHandlers.mycallback1.postMessage("Hello from typescript2!");
-      promise = window.chrome.webview.postMessage("Hello from typescript2")
+      // promise = window.chrome.webview.postMessage("Hello from typescript2")
+      promise = window.proton.mycallback1.invoke("Hello from typescript2")
 
       promise.then(
         function(result: any) {
@@ -50,11 +53,11 @@ function App() {
   
           
           
-      const response = await ping('hello');
-      console.log('got response: ' + response);
+      // const response = await ping('hello');
+      // console.log('got response: ' + response);
 
-      const response2 = await window.webkit.messageHandlers.test2.postMessage("Hello from typescript!")
-      console.log('got response2: ' + response2);
+      // const response2 = await window.webkit.messageHandlers.test2.postMessage("Hello from typescript!")
+      // console.log('got response2: ' + response2);
     } catch(err) {
       console.log('got error: ' + err);
     }
