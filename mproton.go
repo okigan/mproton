@@ -32,6 +32,7 @@ import "C"
 import (
 	"fmt"
 	"sync"
+	"unsafe"
 )
 
 var callbackMapMutex sync.RWMutex
@@ -93,23 +94,38 @@ func (handle *mprotonHandle) Run() {
 	C.xmain()
 }
 
-func (handle *mprotonHandle) SetTitle(path string) {
-	C.prtn_set_title(C.CString(path)) // TODO: cleanup mem
+func (handle *mprotonHandle) SetTitle(title string) {
+	c_title := C.CString(title)
+	defer C.free(unsafe.Pointer(c_title))
+
+	C.prtn_set_title(c_title)
 }
 
 func (handle *mprotonHandle) SetMenuExtraText(text string) {
-	C.prtn_set_menu_extra_text(C.CString(text))
+	c_text := C.CString(text)
+	defer C.free(unsafe.Pointer(c_text))
+
+	C.prtn_set_menu_extra_text(c_text)
 }
 
 func (handle *mprotonHandle) AddMenuExtra(text string) {
-	C.prtn_add_menu_extra_item(C.CString(text))
+	c_text := C.CString(text)
+	defer C.free(unsafe.Pointer(c_text))
+
+	C.prtn_add_menu_extra_item(c_text)
 }
 
 func (handle *mprotonHandle) SetContentPath(path string) {
-	C.prtn_add_content_path(C.CString(path))
+	c_path := C.CString(path)
+	defer C.free(unsafe.Pointer(c_path))
+
+	C.prtn_add_content_path(c_path)
 }
 
 func (handle *mprotonHandle) Bind(name string, callback func(string) (string, error)) {
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+
 	registerCallback(name, callback)
-	C.prtn_add_script_message_handler(C.CString(name))
+	C.prtn_add_script_message_handler(c_name)
 }

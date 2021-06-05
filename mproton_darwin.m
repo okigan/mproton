@@ -58,7 +58,7 @@
 
 - (void)userContentController:(nonnull WKUserContentController *)userContentController
       didReceiveScriptMessage:(nonnull WKScriptMessage *)message {
-    NSLog(@"[objc] int WKScriptMessageHandler callback called");
+    NSLog(@"[objc %@] int WKScriptMessageHandler callback called", [NSThread currentThread]);
 
     NSDictionary *paramDict = message.body;
     
