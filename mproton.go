@@ -13,7 +13,7 @@ package mproton
 #cgo linux openbsd freebsd pkg-config: gtk+-3.0 webkit2gtk-4.0 appindicator3-0.1
 
 
-#cgo windows CXXFLAGS: -std=c++11
+#cgo windows CXXFLAGS: -std=c++11 -DUNICODE -D_UNICODE
 #cgo windows CXXFLAGS: -I./Microsoft.Web.WebView2.Sdk/build/native/include
 #cgo windows CXXFLAGS: -I./Windows/include
 #cgo windows LDFLAGS: -L./Microsoft.Web.WebView2.Sdk/build/native/x64/
@@ -49,7 +49,7 @@ func prtn_goTrampoline(param1 *C.char, param2 *C.char) (*C.char, *C.char) {
 	p1 := C.GoString(param1)
 	p2 := C.GoString(param2)
 
-	println("[golang]", p1, p2)
+	println("[golang] in prtn_goTrampoline: ", p1, p2)
 	callbackMapMutex.RLock()
 	callback, ok := callbackMap[p1]
 	callbackMapMutex.RUnlock()
