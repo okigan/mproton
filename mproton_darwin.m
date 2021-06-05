@@ -41,7 +41,7 @@
 //     extern const char * goCallbackDispatcher(const void * _Nonnull, const char * _Nonnull);
     
 //     dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
-//         struct goTrampoline_return result = prtn_goTrampoline( 
+//         struct goTrampoline_return result = _prtn_call_into_go( 
 // 			(char*)([message.name UTF8String]), 
 // 			(char*)([message.body UTF8String]));
         
@@ -70,7 +70,7 @@
     const char *name = [message.name UTF8String];
     const char *param = [[paramDict objectForKey:@"param"] UTF8String ];
 
-    struct prtn_goTrampoline_return result = prtn_goTrampoline((char*)(name), (char*)(param));
+    struct _prtn_call_into_go_return result = _prtn_call_into_go((char*)(name), (char*)(param));
 
     NSString * r0 = result.r0 != NULL ? [NSString stringWithUTF8String:result.r0] : NULL;
     NSString * r1 = result.r1 != NULL ? [NSString stringWithUTF8String:result.r1] : NULL;
@@ -273,7 +273,7 @@ static WKWebView * createWebView(NSRect frame, id handler) {
 - (void)  MenuExtraCallback: (NSMenuItem*) sender {
     const char *extractedExpr = [ sender.title UTF8String];
     const char *extractedExpr2 = [[NSString stringWithFormat:@"%ld", sender.tag]  UTF8String];
-    prtn_goTrampoline((char*)(extractedExpr), (char*)(extractedExpr2));
+    _prtn_call_into_go((char*)(extractedExpr), (char*)(extractedExpr2));
 }
 @end
 

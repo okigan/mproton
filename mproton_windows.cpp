@@ -169,7 +169,7 @@ class Handler : public ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandle
     LPWSTR message = NULL;
     args->get_WebMessageAsJson(&message);
 
-    struct prtn_goTrampoline_return result = prtn_goTrampoline((char *)CW2A(source), (char *)CW2A(message));
+    struct _prtn_call_into_go_return result = _prtn_call_into_go((char *)CW2A(source), (char *)CW2A(message));
 
     std::cout << "posting result: " << result.r1 << std::endl;
     sender->PostWebMessageAsString(CA2T(result.r1));

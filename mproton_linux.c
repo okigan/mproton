@@ -42,7 +42,7 @@ static gboolean handle_script_message(WebKitUserContentManager *manager, WebKitJ
   const char *str = jsc_value_to_string(jsc_value);
   g_print("Script message received for handler foo: %s\n", str);
 
-  prtn_goTrampoline((char *)"callback1", (char *)str);
+  _prtn_call_into_go((char *)"callback1", (char *)str);
 
   return TRUE;
 }

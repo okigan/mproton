@@ -99,12 +99,12 @@ extern "C" {
 #endif
 
 
-/* Return type for prtn_goTrampoline */
-struct prtn_goTrampoline_return {
+/* Return type for _prtn_call_into_go */
+struct _prtn_call_into_go_return {
 	char* r0;
 	char* r1;
 };
-extern struct prtn_goTrampoline_return prtn_goTrampoline(char* param1, char* param2);
+extern struct _prtn_call_into_go_return _prtn_call_into_go(char* param1, char* param2);
 
 #ifdef __cplusplus
 }

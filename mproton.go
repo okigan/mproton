@@ -45,12 +45,12 @@ func registerCallback(name string, callback func(v string) (string, error)) int 
 	return 0
 }
 
-//export prtn_goTrampoline
-func prtn_goTrampoline(param1 *C.char, param2 *C.char) (*C.char, *C.char) {
+//export _prtn_call_into_go
+func _prtn_call_into_go(param1 *C.char, param2 *C.char) (*C.char, *C.char) {
 	p1 := C.GoString(param1)
 	p2 := C.GoString(param2)
 
-	println("[golang] in prtn_goTrampoline: ", p1, p2)
+	println("[golang] in _prtn_call_into_go: ", p1, p2)
 	callbackMapMutex.RLock()
 	callback, ok := callbackMap[p1]
 	callbackMapMutex.RUnlock()
