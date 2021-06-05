@@ -6,6 +6,10 @@
 #define _Nullable
 #endif
 
+#ifdef __cplusplus
+extern "C"{
+#endif 
+
 int prtn_initialize(void);
 int prtn_set_title (const char *  _Nullable title);
 int prtn_set_menu_extra_text (const char * _Nullable text);
@@ -17,12 +21,16 @@ int prtn_execute_js(const char * _Nullable script);
 
 int xmain (void);
 
-#ifndef GO_CGO_EXPORT_PROLOGUE_H
-struct prtn_goTrampoline_return {
-	char* _Nullable r0;
-	char* _Nullable r1;
-};
-extern struct prtn_goTrampoline_return prtn_goTrampoline(char* _Nullable param1, char* _Nullable param2);
+#ifdef __cplusplus
+}
 #endif 
+
+// #ifndef GO_CGO_EXPORT_PROLOGUE_H
+// struct prtn_goTrampoline_return {
+// 	char* _Nullable r0;
+// 	char* _Nullable r1;
+// };
+// extern struct prtn_goTrampoline_return prtn_goTrampoline(char* _Nullable param1, char* _Nullable param2);
+// #endif 
 
 #endif
