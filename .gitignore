@@ -52,3 +52,9 @@ fastlane/test_output
 !*.xcodeproj/xcshareddata/
 !*.xcworkspace/contents.xcworkspacedata
 /*.gcno
+
+
+
+**/Microsoft.Web.WebView2.Sdk
+**/Microsoft.Web.WebView2.Sdk.zip
+WebView2Loader.dll
