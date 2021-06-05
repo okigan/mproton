@@ -13,18 +13,11 @@
 #include "mproton.h"
 #include "mproton_cgo_exports.h"
 
-@interface AppContext : NSObject <
-//    WKScriptMessageHandlerWithReply,
-    WKScriptMessageHandler
->
+@interface AppContext : NSObject <WKScriptMessageHandler>
 @property(nonatomic, retain)  NSWindow  * _Nullable window;
 @property(nonatomic, retain)  NSMenu  * _Nullable mainMenu;
 @property(nonatomic, retain)  NSStatusItem * _Nullable statusItem;
 @property(nonatomic, retain)  WKWebView * _Nullable webView;
-
-// - (void)userContentController:(nonnull WKUserContentController *)userContentController
-//       didReceiveScriptMessage:(nonnull WKScriptMessage *)message
-//                  replyHandler:(nonnull void (^)(id _Nullable, NSString * _Nullable))replyHandler;
 
 - (void)userContentController:(nonnull WKUserContentController *)userContentController
       didReceiveScriptMessage:(nonnull WKScriptMessage *)message;
@@ -32,30 +25,6 @@
 @end
 
 @implementation AppContext
-// - (void)userContentController:(nonnull WKUserContentController *)userContentController
-//       didReceiveScriptMessage:(nonnull WKScriptMessage *)message
-//                  replyHandler:(nonnull void (^)(id _Nullable, NSString * _Nullable))replyHandler {
-    
-//     NSLog(@"[objc] WKScriptMessageHandlerWithReply callback called");
-    
-//     extern const char * goCallbackDispatcher(const void * _Nonnull, const char * _Nonnull);
-    
-//     dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
-//         struct goTrampoline_return result = _prtn_call_into_go( 
-// 			(char*)([message.name UTF8String]), 
-// 			(char*)([message.body UTF8String]));
-        
-//         NSString * r0 = result.r0 != NULL ? [NSString stringWithUTF8String:result.r0] : NULL;
-//         NSString * r1 = result.r1 != NULL ? [NSString stringWithUTF8String:result.r1] : NULL;
-
-//         free(result.r0);
-//         free(result.r1);
-        
-//         dispatch_async(dispatch_get_main_queue(), ^{
-// 			replyHandler(r0, r1);
-//         });
-//     });
-// }
 
 - (void)userContentController:(nonnull WKUserContentController *)userContentController
       didReceiveScriptMessage:(nonnull WKScriptMessage *)message {
@@ -63,10 +32,6 @@
 
     NSDictionary *paramDict = message.body;
     
-//    for(NSString *key in [paramDict allKeys]) {
-//        NSLog(@"%@:%@", key, [paramDict objectForKey:key]);
-//    }
-
     const char *name = [message.name UTF8String];
     const char *param = [[paramDict objectForKey:@"param"] UTF8String ];
 
@@ -86,10 +51,7 @@
 
 AppContext * g_appContext = nil;
 
-
-@interface AppDelegate : NSObject <
-NSApplicationDelegate
->
+@interface AppDelegate : NSObject <NSApplicationDelegate>
 
 @property(nonatomic, retain)  NSWindow  * _Nullable window;
 @property(nonatomic, retain)  NSMenu  * _Nullable mainMenu;
@@ -103,7 +65,8 @@ NSApplicationDelegate
 @implementation AppDelegate
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
-    NSLog(@"in applicationShouldTerminateAfterLastWindowClosed");
+    NSLog(@"[objc %@] in applicationShouldTerminateAfterLastWindowClosed", [NSThread currentThread]);
+
 
 	[NSApp stop:nil];   
     
@@ -124,7 +87,7 @@ static NSWindow * createWindow(id appName) {
     return window;
 }
 
-static NSMenu * createMainMenu(id appName) {
+static NSMenu *createMainMenu(id appName) {
     id appMenu = [[NSMenu alloc] init];
     [appMenu addItem:[[NSMenuItem alloc]
                       initWithTitle:[@"Quit " stringByAppendingString:appName]
@@ -140,20 +103,20 @@ static NSMenu * createMainMenu(id appName) {
     return mainMenu;
 }
 
-static NSStatusItem * createMenuExtra() {
+static NSStatusItem *createMenuExtra() {
     NSStatusItem * statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
     statusItem.button.title= @"☄️";
      
     NSMenu *menu = [[NSMenu alloc] init];
-    [menu addItem:[NSMenuItem separatorItem]]; // A thin grey line
+    [menu addItem:[NSMenuItem separatorItem]];
     [menu addItemWithTitle:@"Quit" action:@selector(terminate:) keyEquivalent:@"Q"];
     statusItem.menu = menu;
     
     return statusItem;
 }
 
-static
-void registerScriptMessageHandler(WKUserContentController *userContentController, NSString * name) {
+static void registerScriptMessageHandler(WKUserContentController *userContentController,
+                                         NSString *name) {
     NSString * javascript = [NSString stringWithFormat:
 @"function _proton_%@_invoke(s) {  \n"
 @"    var promise = new Promise(function(resolve, reject) {  \n"
@@ -191,14 +154,6 @@ static WKWebView * createWebView(NSRect frame, id handler) {
     WKUserContentController *userContentController = [[WKUserContentController alloc] init];
     theConfiguration.userContentController = userContentController;
     
-    
-    // [userContentController addScriptMessageHandler:g_appContext name:@"external"];
-    // NSString * name = @"external";
-//    [userContentController addScriptMessageHandlerWithReply:g_appContext
-//                                               contentWorld:WKContentWorld.pageWorld
-//                                                       name:name];
-    
-    // [userContentController addScriptMessageHandler:g_appContext name:name];
    
     NSString * script1 =
 @"var _proton_promises = {};  "
@@ -227,27 +182,18 @@ static WKWebView * createWebView(NSRect frame, id handler) {
                                                                 injectionTime:WKUserScriptInjectionTimeAtDocumentStart
                                                              forMainFrameOnly:YES]];
 
-
     // registerScriptMessageHandler(userContentController, name);
     
     WKWebView *webView = [[WKWebView alloc]
                           initWithFrame:frame
                           configuration:theConfiguration];
 
-    // NSURL *nsurl=[NSURL URLWithString:@"http://www.apple.com"];
-    // NSURLRequest *nsrequest=[NSURLRequest requestWithURL:nsurl];
-    // [webView loadRequest:nsrequest];
-    
-    // NSURL *url = [NSURL URLWithString:@"file:///Users/iokulist/Github/okigan/proton2/protonappui/dist/index.html"];
-    // NSString *html = [NSString stringWithContentsOfURL:url encoding:NSUTF8StringEncoding error:nil];
-    // NSURL *baseUrl = [NSURL URLWithString:@""];
-    
-    // [webView loadHTMLString:html baseURL:baseUrl];
     return webView;
 }
 
 - (void) applicationWillFinishLaunching: (NSNotification *)notification {
-    NSLog(@"in applicationWillFinishLaunching");
+    NSLog(@"[objc %@] in applicationWillFinishLaunching", [NSThread currentThread]);
+    
     id appName = [[NSProcessInfo processInfo] processName];
     
     self.window = g_appContext.window;
@@ -264,16 +210,17 @@ static WKWebView * createWebView(NSRect frame, id handler) {
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
-    NSLog(@"in applicationDidFinishLaunching");
-    
+    NSLog(@"[objc %@] in applicationDidFinishLaunching", [NSThread currentThread]);
+
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
     [NSApp activateIgnoringOtherApps:YES];
 }
 
 - (void)  MenuExtraCallback: (NSMenuItem*) sender {
     const char *extractedExpr = [ sender.title UTF8String];
-    const char *extractedExpr2 = [[NSString stringWithFormat:@"%ld", sender.tag]  UTF8String];
-    _prtn_call_into_go((char*)(extractedExpr), (char*)(extractedExpr2));
+    const char *extractedExpr2 = [[NSString stringWithFormat:@"%ld", sender.tag] UTF8String];
+    const char *callbackName = [@"MenuItemCallback" UTF8String];
+    _prtn_call_into_go((char*)callbackName, (char*)(extractedExpr2));
 }
 @end
 
@@ -319,11 +266,10 @@ int prtn_set_menu_extra_text (const char* text) {
 }
 
 int prtn_add_menu_extra_item (const char* text, int tag) {
-    
-    NSMenuItem * _Nullable extractedExpr = [g_appContext.statusItem.menu
-                                            addItemWithTitle:[NSString stringWithUTF8String:text]
-                                            action:@selector(MenuExtraCallback:)
-                                            keyEquivalent:@""];
+    NSMenuItem *extractedExpr = [g_appContext.statusItem.menu
+        addItemWithTitle:[NSString stringWithUTF8String:text]
+                  action:@selector(MenuExtraCallback:)
+           keyEquivalent:@""];
     extractedExpr.tag  = tag;
     
     return 0;
@@ -353,11 +299,6 @@ int prtn_add_script_message_handler(const char * _Nullable name) {
 
 int prtn_execute_script(const char * _Nullable script) {
 	NSString * ns_script = [NSString stringWithUTF8String:script];
-    
-//   [g_appContext.webView.configuration.userContentController
-//    addScriptMessageHandlerWithReply:g_appContext
-//    contentWorld:WKContentWorld.pageWorld
-//    name:ns_name];
     
     executeJS(g_appContext.webView, ns_script);
 

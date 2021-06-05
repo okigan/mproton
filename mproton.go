@@ -31,9 +31,12 @@ package mproton
 import "C"
 import (
 	"fmt"
+	"log"
 	"sync"
 	"unsafe"
 )
+
+const MenuItemCallbackName = "MenuItemCallback"
 
 var callbackMapMutex sync.RWMutex
 var callbackMap = make(map[string]func(v string) (string, error))
@@ -50,7 +53,7 @@ func _prtn_call_into_go(param1 *C.char, param2 *C.char) (*C.char, *C.char) {
 	p1 := C.GoString(param1)
 	p2 := C.GoString(param2)
 
-	println("[golang] in _prtn_call_into_go: ", p1, p2)
+	log.Print("[golang] in _prtn_call_into_go: ", p1, p2)
 	callbackMapMutex.RLock()
 	callback, ok := callbackMap[p1]
 	callbackMapMutex.RUnlock()
@@ -76,8 +79,8 @@ type mProtonApp interface {
 	SetTitle(path string)
 	SetContentPath(path string)
 	Bind(name string, callback func(string) (string, error))
-	SetMenuExtraText(name string)
-	AddMenuExtra(name string, tag int)
+	SetMenuBarExtraText(name string)
+	AddMenuBarExtra(name string, tag int)
 	ExecuteScript(script string)
 	//	SetTitle(title string)
 }
@@ -102,14 +105,14 @@ func (handle *mprotonHandle) SetTitle(title string) {
 	C.prtn_set_title(c_title)
 }
 
-func (handle *mprotonHandle) SetMenuExtraText(text string) {
+func (handle *mprotonHandle) SetMenuBarExtraText(text string) {
 	c_text := C.CString(text)
 	defer C.free(unsafe.Pointer(c_text))
 
 	C.prtn_set_menu_extra_text(c_text)
 }
 
-func (handle *mprotonHandle) AddMenuExtra(text string, tag int) {
+func (handle *mprotonHandle) AddMenuBarExtra(text string, tag int) {
 	c_text := C.CString(text)
 	defer C.free(unsafe.Pointer(c_text))
 

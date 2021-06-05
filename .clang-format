@@ -1,20 +1,18 @@
 BasedOnStyle: Google
 IndentWidth: 4
-ColumnLimit: 120
+ColumnLimit: 90
 ---
 Language: Cpp
 # Force pointers to the type for C++.
 DerivePointerAlignment: false
 PointerAlignment: Left
+BinPackArguments: true
+BinPackParameters: true
 ---
 Language: JavaScript
-# Use 100 columns for JS.
-ColumnLimit: 100
 ---
 Language: Proto
 # Don't format .proto files.
 DisableFormat: true
 ---
 Language: CSharp
-# Use 100 columns for C#.
-ColumnLimit: 100
