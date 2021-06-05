@@ -19,7 +19,7 @@ func mycallback2(param string) (string, error) {
 
 func main() {
 	if len(os.Args) == 2 && os.Args[1] == "--self-test" {
-		print("self test complete.\n")
+		println("self test complete.")
 		return
 	}
 

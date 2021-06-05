@@ -11,7 +11,7 @@
 GtkWidget *main_window = NULL;
 WebKitWebView *webview = NULL;
 
-int xmain() {
+int prtn_event_loop() {
   gtk_widget_grab_focus(GTK_WIDGET(webview));
   gtk_widget_show_all(main_window);
 
@@ -20,7 +20,7 @@ int xmain() {
 }
 
 #ifdef STANDALONEPROG
-int main(int argc, char **argv) { return xmain(); }
+int main(int argc, char **argv) { return prtn_event_loop(); }
 #endif
 
 // https://wiki.gnome.org/Projects/WebKitGtk/ProgrammingGuide/Tutorial

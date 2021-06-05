@@ -1,4 +1,20 @@
+BasedOnStyle: Google
+IndentWidth: 4
+ColumnLimit: 120
 ---
 Language: Cpp
-BasedOnStyle:  Google
-ColumnLimit: 120
+# Force pointers to the type for C++.
+DerivePointerAlignment: false
+PointerAlignment: Left
+---
+Language: JavaScript
+# Use 100 columns for JS.
+ColumnLimit: 100
+---
+Language: Proto
+# Don't format .proto files.
+DisableFormat: true
+---
+Language: CSharp
+# Use 100 columns for C#.
+ColumnLimit: 100

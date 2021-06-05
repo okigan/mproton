@@ -215,20 +215,20 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 }
 
 extern "C" {
-int xmain(void) {
-  std::cout << "Hello World!" << std::endl;
+int prtn_event_loop(void) {
+    std::cout << "Hello World!" << std::endl;
 
-  ShowWindow(hMainWnd, SW_SHOW);
-  UpdateWindow(hMainWnd);
-  SetFocus(hMainWnd);
+    ShowWindow(hMainWnd, SW_SHOW);
+    UpdateWindow(hMainWnd);
+    SetFocus(hMainWnd);
 
-  MSG msg;
-  while (GetMessage(&msg, nullptr, 0, 0)) {
-    TranslateMessage(&msg);
-    DispatchMessage(&msg);
-  }
+    MSG msg;
+    while (GetMessage(&msg, nullptr, 0, 0)) {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
 
-  return 0;
+    return 0;
 }
 
 int prtn_initialize(void) {
@@ -322,5 +322,5 @@ int prtn_execute_script(const char * script) {
 }
 
 #ifdef STANDALONEPROG
-int main(int argc, char **argv) { return xmain(); }
+int main(int argc, char** argv) { return prtn_event_loop(); }
 #endif

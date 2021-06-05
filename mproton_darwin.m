@@ -277,9 +277,7 @@ static WKWebView * createWebView(NSRect frame, id handler) {
 }
 @end
 
-
-
-int xmain(void) {
+int prtn_event_loop(void) {
     @autoreleasepool
     {
         AppDelegate* minidelegate = [AppDelegate alloc];
@@ -295,9 +293,7 @@ int xmain(void) {
 }
 
 #ifdef STANDALONEPROG
-int main(){
-    return xmain();
-}
+int main() { return prtn_event_loop(); }
 #endif
 
 int prtn_initialize(void) {

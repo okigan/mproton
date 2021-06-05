@@ -92,7 +92,7 @@ func New() mProtonApp {
 }
 
 func (handle *mprotonHandle) Run() {
-	C.xmain()
+	C.prtn_event_loop()
 }
 
 func (handle *mprotonHandle) SetTitle(title string) {
