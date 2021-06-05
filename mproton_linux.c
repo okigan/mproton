@@ -6,6 +6,7 @@
 #include <webkit2/webkit2.h>
 
 #include "mproton.h"
+#include "mproton_cgo_exports.h"
 
 GtkWidget *main_window = NULL;
 WebKitWebView *webview = NULL;
@@ -98,7 +99,7 @@ int prtn_set_title(const char *title) {
 
 int prtn_set_menu_extra_text(const char *text) { return 0; }
 
-int prtn_add_menu_extra_item(const char *text) { return 0; }
+int prtn_add_menu_extra_item(const char *text, int tag) { return 0; }
 
 int prtn_add_content_path(const char *path) {
   webkit_web_view_load_uri(webview,
@@ -108,3 +109,9 @@ int prtn_add_content_path(const char *path) {
 }
 
 int prtn_add_script_message_handler(const char *name) { return 0; }
+
+
+
+int prtn_execute_script(const char *script) {
+	return 0;
+}

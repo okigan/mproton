@@ -104,7 +104,7 @@ struct prtn_goTrampoline_return {
 	char* r0;
 	char* r1;
 };
-extern __declspec(dllexport) struct prtn_goTrampoline_return prtn_goTrampoline(char* param1, char* param2);
+extern struct prtn_goTrampoline_return prtn_goTrampoline(char* param1, char* param2);
 
 #ifdef __cplusplus
 }

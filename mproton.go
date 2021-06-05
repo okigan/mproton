@@ -77,7 +77,7 @@ type mProtonApp interface {
 	SetContentPath(path string)
 	Bind(name string, callback func(string) (string, error))
 	SetMenuExtraText(name string)
-	AddMenuExtra(name string)
+	AddMenuExtra(name string, tag int)
 	ExecuteScript(script string)
 	//	SetTitle(title string)
 }
@@ -109,11 +109,11 @@ func (handle *mprotonHandle) SetMenuExtraText(text string) {
 	C.prtn_set_menu_extra_text(c_text)
 }
 
-func (handle *mprotonHandle) AddMenuExtra(text string) {
+func (handle *mprotonHandle) AddMenuExtra(text string, tag int) {
 	c_text := C.CString(text)
 	defer C.free(unsafe.Pointer(c_text))
 
-	C.prtn_add_menu_extra_item(c_text)
+	C.prtn_add_menu_extra_item(c_text, C.int(tag))
 }
 
 func (handle *mprotonHandle) SetContentPath(path string) {

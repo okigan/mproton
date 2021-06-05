@@ -10,14 +10,9 @@
 
 #include "WebView2.h"
 
+#include "mproton.h"
 #include "mproton_cgo_exports.h"
 
-// #include "mproton.h"
-// struct prtn_goTrampoline_return {
-//   char *r0;
-//   char *r1;
-// };
-// extern "C" struct prtn_goTrampoline_return prtn_goTrampoline(char *param1, char *param2);
 
 class CMultiByteToWideCharConverter {
  public:
@@ -283,7 +278,7 @@ int prtn_set_title(const char *title) { return SetWindowText(hMainWnd, CA2T(titl
 
 int prtn_set_menu_extra_text(const char *text) { return 0; }
 
-int prtn_add_menu_extra_item(const char *text) { return 0; }
+int prtn_add_menu_extra_item(const char *text, int tag) { return 0; }
 
 int prtn_add_content_path(const char *path) {
   std::cout << "about to navigate" << std::endl;
@@ -319,6 +314,11 @@ int prtn_add_script_message_handler(const char *name) {
 
   return 0;
 }
+
+int prtn_execute_script(const char * script) {
+  return 0;
+}
+
 }
 
 #ifdef STANDALONEPROG

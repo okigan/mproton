@@ -34,7 +34,7 @@ func main() {
 	m.Bind("mycallback1", mycallback1)
 	m.Bind("mycallback2", mycallback2)
 	m.SetMenuExtraText("☄️")
-	m.AddMenuExtra("Extra menu item ☄️!")
+	m.AddMenuExtra("Extra menu item ☄️!", 42)
 	m.SetContentPath(fmt.Sprintf("file://%s/protonappui/dist/index.html", path))
 
 	m.Run()
