@@ -26,6 +26,5 @@ build-exampleapp:
 self-test: build-exampleapp
 	$(ROOT_DIR)/cmd/exampleapp/exampleapp --self-test
 
-
 mproton_cgo_exports.h:
 	go tool cgo -exportheader mproton_cgo_exports.h mproton.go
