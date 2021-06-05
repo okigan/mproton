@@ -78,6 +78,7 @@ type mProtonApp interface {
 	Bind(name string, callback func(string) (string, error))
 	SetMenuExtraText(name string)
 	AddMenuExtra(name string)
+	ExecuteScript(script string)
 	//	SetTitle(title string)
 }
 
@@ -128,4 +129,11 @@ func (handle *mprotonHandle) Bind(name string, callback func(string) (string, er
 
 	registerCallback(name, callback)
 	C.prtn_add_script_message_handler(c_name)
+}
+
+func (hanle *mprotonHandle) ExecuteScript(script string) {
+	c_script := C.CString(script)
+	defer C.free(unsafe.Pointer(c_script))
+
+	C.prtn_execute_script(c_script)
 }

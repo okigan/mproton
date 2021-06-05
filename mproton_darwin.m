@@ -270,10 +270,9 @@ static WKWebView * createWebView(NSRect frame, id handler) {
 }
 
 - (void)  MenuExtraCallback: (NSMenuItem*) sender {
-    const char *extractedExpr = [@"p111" UTF8String];
-    const char *extractedExpr2 = [@"p222" UTF8String];
-    struct prtn_goTrampoline_return result = prtn_goTrampoline((char*)(extractedExpr), (char*)(extractedExpr2));
-    
+    const char *extractedExpr = [ sender.title UTF8String];
+    const char *extractedExpr2 = "placeholder";//[[NSString stringWithFormat:@"%ld", sender.tag]  UTF8String];
+    prtn_goTrampoline((char*)(extractedExpr), (char*)(extractedExpr2));
 }
 @end
 
@@ -324,10 +323,11 @@ int prtn_set_menu_extra_text (const char* text) {
 
 int prtn_add_menu_extra_item (const char* text) {
     
-    [g_appContext.statusItem.menu
-     addItemWithTitle:[NSString stringWithUTF8String:text]
-     action:@selector(MenuExtraCallback:)
-     keyEquivalent:@""];
+    NSMenuItem * _Nullable extractedExpr = [g_appContext.statusItem.menu
+                                            addItemWithTitle:[NSString stringWithUTF8String:text]
+                                            action:@selector(MenuExtraCallback:)
+                                            keyEquivalent:@""];
+    extractedExpr.tag  = 4;
     
     return 0;
 }
@@ -355,7 +355,7 @@ int prtn_add_script_message_handler(const char * _Nullable name) {
 }
 
 
-int prtn_execute_js(const char * _Nullable script) {
+int prtn_execute_script(const char * _Nullable script) {
 	NSString * ns_script = [NSString stringWithUTF8String:script];
     
 //   [g_appContext.webView.configuration.userContentController
@@ -367,4 +367,3 @@ int prtn_execute_js(const char * _Nullable script) {
 
 	return 0;
 }
-
