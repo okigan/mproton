@@ -25,7 +25,7 @@ function App() {
       // promise = window.webkit.messageHandlers.mycallback1.postMessage("Hello from typescript1!");
       // promise = window.webkit.messageHandlers.mycallback1.postMessage("Hello from typescript2!");
       // promise = window.chrome.webview.postMessage("Hello from typescript2")
-      promise = window.proton.mycallback1.invoke("Hello from typescript2")
+      promise = window.proton.mycallback1.invoke("Hello from typescript", "and warm hugs too", {"Name": "Batman", "Age":42})
 
       promise.then(
         function(result: any) {

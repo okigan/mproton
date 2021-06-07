@@ -8,12 +8,19 @@ import (
 	"github.com/okigan/mproton"
 )
 
-func mycallback1(param string) (string, error) {
-	log.Print("[golang] in mycallback1: ", param)
+type User struct {
+	Name string
+	Age  int
+}
+
+func mycallback1(param1 string, param2 string, param3 User) (string, error) {
+	log.Print("[golang] in mycallback1: ", param1, param2, param3)
 	return "Done", nil
 }
 
 func main() {
+	log.SetFlags(log.LstdFlags)
+
 	// minimal self test to make sure the executable can bootstrap and
 	// find all dependent libraries
 	if len(os.Args) == 2 && os.Args[1] == "--self-test" {

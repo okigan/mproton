@@ -31,9 +31,13 @@
     NSLog(@"[objc %@] int WKScriptMessageHandler callback called", [NSThread currentThread]);
 
     NSDictionary *paramDict = message.body;
-    
-    const char *name = [message.name UTF8String];
-    const char *param = [[paramDict objectForKey:@"param"] UTF8String ];
+
+    const char *name = [ message.name UTF8String ];
+
+    NSError *writeError = nil; 
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:message.body options:0 error:&writeError];
+    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding]; 
+    const char *param = [ jsonString UTF8String ];
 
     struct _prtn_call_into_go_return result = _prtn_call_into_go((char*)(name), (char*)(param));
 
@@ -119,10 +123,11 @@ static void registerScriptMessageHandler(WKUserContentController *userContentCon
                                          NSString *name) {
     NSString * javascript = [NSString stringWithFormat:
 @"function _proton_%@_invoke(s) {  \n"
+@"    var args = arguments;  \n"
 @"    var promise = new Promise(function(resolve, reject) {  \n"
 @"        var promiseId = _proton_genPromiseSequenceNumber();  \n"
 @"        _proton_promises[promiseId] = { resolve, reject };  \n"
-@"        window.webkit.messageHandlers.%@.postMessage({ promiseId: promiseId, param: s });  \n"
+@"        window.webkit.messageHandlers.%@.postMessage({ promiseId: promiseId, name: \"%@\", param: Array.prototype.slice.call(args) });  \n"
 @"    });  \n"
 @"    return promise;  \n"
 @"}  \n"
@@ -131,7 +136,7 @@ static void registerScriptMessageHandler(WKUserContentController *userContentCon
 @"    invoke: _proton_%@_invoke  \n"
 @"}  "
 ,
-        name, name, name, name];
+        name, name, name, name, name];
     
     [userContentController addUserScript:[[WKUserScript alloc] initWithSource:javascript
                                                                 injectionTime:WKUserScriptInjectionTimeAtDocumentStart

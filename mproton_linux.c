@@ -33,7 +33,7 @@ static gboolean closeWebViewCb(WebKitWebView* webview, GtkWidget* window) {
 static gboolean handle_script_message(WebKitUserContentManager* manager,
                                       WebKitJavascriptResult* message,
                                       gpointer user_data) {
-    printf("[c++] in handle_script_message");
+    printf("[c++] in handle_script_message: %s\n", (char*)user_data);
 
     char* message_str;
 
@@ -41,7 +41,7 @@ static gboolean handle_script_message(WebKitUserContentManager* manager,
     const char* str = jsc_value_to_string(jsc_value);
     g_print("Script message received for handler foo: %s\n", str);
 
-    _prtn_call_into_go((char*)"callback1", (char*)str);
+    _prtn_call_into_go(NULL, (char*)str);
 
     return TRUE;
 }
@@ -64,14 +64,14 @@ int prtn_initialize(void) {
                      NULL);
     webkit_user_content_manager_register_script_message_handler(manager, "foobar");
 
-    WebKitUserScript* script_id = webkit_user_script_new(
+    WebKitUserScript* user_script = webkit_user_script_new(
         "window.proton = { \"mycallback1\": { \"invoke\" : s => "
         "webkit.messageHandlers.foobar.postMessage(s)}}",
         WEBKIT_USER_CONTENT_INJECT_TOP_FRAME,
         WEBKIT_USER_SCRIPT_INJECT_AT_DOCUMENT_START,
         NULL,
         NULL);
-    webkit_user_content_manager_add_script(manager, script_id);
+    webkit_user_content_manager_add_script(manager, user_script);
 
     // init("window.external={invoke:function(s){window.webkit.messageHandlers."
     // "external.postMessage(s);}}");
@@ -108,13 +108,32 @@ int prtn_set_menu_extra_text(const char* text) { return 0; }
 int prtn_add_menu_extra_item(const char* text, int tag) { return 0; }
 
 int prtn_add_content_path(const char* path) {
-    webkit_web_view_load_uri(
-        webview,
-        path);
+    webkit_web_view_load_uri(webview, path);
 
     return 0;
 }
 
-int prtn_add_script_message_handler(const char* name) { return 0; }
+int prtn_add_script_message_handler(const char* name) {
+    char script[2048] = "\0";
+    snprintf(script,
+             sizeof(script) / sizeof(script[0]),
+             "window.proton = { \"%s\": { \"invoke\" : s => "
+             "webkit.messageHandlers.foobar.postMessage(JSON.stringify({name: \"%s\", param: Array.prototype.slice.call(arguments)}))}}",
+             name,
+             name);
+
+    WebKitUserScript* user_script =
+        webkit_user_script_new(script,
+                               WEBKIT_USER_CONTENT_INJECT_TOP_FRAME,
+                               WEBKIT_USER_SCRIPT_INJECT_AT_DOCUMENT_START,
+                               NULL,
+                               NULL);
+
+    WebKitUserContentManager* manager =
+        webkit_web_view_get_user_content_manager(WEBKIT_WEB_VIEW(webview));
+    webkit_user_content_manager_add_script(manager, user_script);
+
+    return 0;
+}
 
 int prtn_execute_script(const char* script) { return 0; }

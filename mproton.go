@@ -29,19 +29,25 @@ package mproton
 #include <stdlib.h>
 */
 import "C"
+
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
+	"runtime"
 	"sync"
 	"unsafe"
+
+	"github.com/tidwall/gjson"
 )
 
 const MenuItemCallbackName = "MenuItemCallback"
 
 var callbackMapMutex sync.RWMutex
-var callbackMap = make(map[string]func(v string) (string, error))
+var callbackMap = make(map[string]interface{})
 
-func registerCallback(name string, callback func(v string) (string, error)) int {
+func registerCallback(name string, callback interface{}) int {
 	callbackMapMutex.Lock()
 	callbackMap[name] = callback
 	callbackMapMutex.Unlock()
@@ -50,27 +56,41 @@ func registerCallback(name string, callback func(v string) (string, error)) int 
 
 //export _prtn_call_into_go
 func _prtn_call_into_go(param1 *C.char, param2 *C.char) (*C.char, *C.char) {
-	p1 := C.GoString(param1)
-	p2 := C.GoString(param2)
+	log.Print("[golang] in _prtn_call_into_go")
 
-	log.Print("[golang] in _prtn_call_into_go: ", p1, p2)
+	json1 := C.GoString(param2)
+	param := gjson.Get(json1, "param").Array()
+	name := gjson.Get(json1, "name").Str
+
 	callbackMapMutex.RLock()
-	callback, ok := callbackMap[p1]
+	callback, ok := callbackMap[name]
 	callbackMapMutex.RUnlock()
 
 	if !ok {
-		msg := fmt.Sprintf("No callback registered for: %s", p1)
+		msg := fmt.Sprintf("No callback registered for: %s", name)
 		return nil, C.CString(msg)
 	}
 
-	r1, err := callback(p2)
+	valueOfCallback := reflect.ValueOf(callback)
 
-	if err != nil {
-		return C.CString(r1), C.CString(err.Error())
-	} else {
-		return C.CString(r1), nil
+	args := []reflect.Value{}
+	for i := 0; i < valueOfCallback.Type().NumIn(); i++ {
+		arg := reflect.New(valueOfCallback.Type().In(i))
+		json.Unmarshal([]byte(param[i].Raw), arg.Interface())
+		args = append(args, arg.Elem())
 	}
 
+	res := valueOfCallback.Call(args)
+
+	print(res)
+	// r1, err := res[0].Interface().(string), res[1].Interface().(error)
+	// if err != nil {
+	// 	return C.CString(r1), C.CString(err.Error())
+	// } else {
+	// 	return C.CString(r1), nil
+	// }
+
+	return C.CString(res[0].Interface().(string)), nil
 }
 
 type mProtonApp interface {
@@ -78,7 +98,7 @@ type mProtonApp interface {
 	// Destroy()
 	SetTitle(path string)
 	SetContentPath(path string)
-	Bind(name string, callback func(string) (string, error))
+	Bind(name string, callback interface{})
 	SetMenuBarExtraText(name string)
 	AddMenuBarExtra(name string, tag int)
 	ExecuteScript(script string)
@@ -89,6 +109,8 @@ type mprotonHandle struct {
 }
 
 func New() mProtonApp {
+	runtime.LockOSThread()
+
 	h := &mprotonHandle{}
 	C.prtn_initialize()
 	return h
@@ -126,7 +148,7 @@ func (handle *mprotonHandle) SetContentPath(path string) {
 	C.prtn_add_content_path(c_path)
 }
 
-func (handle *mprotonHandle) Bind(name string, callback func(string) (string, error)) {
+func (handle *mprotonHandle) Bind(name string, callback interface{}) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
