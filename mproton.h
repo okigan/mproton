@@ -20,6 +20,8 @@ int prtn_add_script_message_handler(const char * _Nullable name);
 int prtn_execute_script(const char * _Nullable script);
 int prtn_event_loop(void);
 
+int prtn_resolve(const char * promiseId, const char * result, const char * error) ;
+
 #ifdef __cplusplus
 }
 #endif 

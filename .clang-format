@@ -1,6 +1,6 @@
 BasedOnStyle: Google
 IndentWidth: 4
-ColumnLimit: 90
+ColumnLimit: 110
 ---
 Language: Cpp
 # Force pointers to the type for C++.

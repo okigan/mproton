@@ -27,16 +27,16 @@ function App() {
       // promise = window.chrome.webview.postMessage("Hello from typescript2")
       promise = window.proton.mycallback1.invoke("Hello from typescript", "and warm hugs too", {"Name": "Batman", "Age":42})
 
-      promise.then(
+      promise
+        .then(
         function(result: any) {
           console.log(result); // "Stuff worked!"
-          alert(result);
           //successFunc( result )
         },
         function(err: any) {
           console.log(err); // Error: "It broke"
-          // errorFunc( err )
-        });
+        })
+        ;
 
         // var sleepPromise = window.webkit.messageHandlers.sleep.postMessage("10000");
 

@@ -44,63 +44,94 @@ import (
 
 const MenuItemCallbackName = "MenuItemCallback"
 
-var callbackMapMutex sync.RWMutex
-var callbackMap = make(map[string]interface{})
+//TODO: review https://github.com/aquasecurity/tracee/pull/649#issuecomment-812615069
+type ReplyFunc func(*string, error)
 
-func registerCallback(name string, callback interface{}) int {
+// type CallbackFunc func(reply ReplyFunc, params ...interface{})
+type CallbackFunc interface{}
+
+var callbackMapMutex sync.Mutex
+var callbackWithReplyMap = make(map[string]CallbackFunc)
+
+func registerCallbackWithReply(name string, callback CallbackFunc) int {
 	callbackMapMutex.Lock()
-	callbackMap[name] = callback
+	callbackWithReplyMap[name] = callback
 	callbackMapMutex.Unlock()
 	return 0
 }
 
-//export _prtn_call_into_go
-func _prtn_call_into_go(param1 *C.char, param2 *C.char) (*C.char, *C.char) {
-	log.Print("[golang] in _prtn_call_into_go")
+func jump_back_to_host(promise_id string, result *string, err error) {
+	c_promise_id := C.CString(promise_id)
+	defer C.free(unsafe.Pointer(c_promise_id))
 
-	json1 := C.GoString(param2)
+	if err != nil {
+		c_error_string := C.CString(err.Error())
+		defer C.free(unsafe.Pointer(c_error_string))
+		C.prtn_resolve(c_promise_id, nil, c_error_string)
+	} else {
+		c_result := C.CString(*result)
+		defer C.free(unsafe.Pointer(c_result))
+		C.prtn_resolve(C.CString(promise_id), C.CString(*result), nil)
+	}
+}
+
+//export _prtn_call_into_go_with_reply
+func _prtn_call_into_go_with_reply(obj *C.char) (*C.char, *C.char) {
+	log.Print("[golang] in _prtn_call_into_go_with_reply")
+
+	json1 := C.GoString(obj)
 	param := gjson.Get(json1, "param").Array()
 	name := gjson.Get(json1, "name").Str
+	promise_id := gjson.Get(json1, "promiseId").Raw
 
-	callbackMapMutex.RLock()
-	callback, ok := callbackMap[name]
-	callbackMapMutex.RUnlock()
+	callbackMapMutex.Lock()
+	callback, ok := callbackWithReplyMap[name]
+	callbackMapMutex.Unlock()
 
 	if !ok {
 		msg := fmt.Sprintf("No callback registered for: %s", name)
 		log.Print(msg)
-		return nil, C.CString(msg)
 	}
+
+	// this is what following code will try to do through reflection
+	// callback(func(result *string, error_string *string) {
+	// 	jump_back_to_host(promise_id, result, error_string)
+	// }, param)
 
 	valueOfCallback := reflect.ValueOf(callback)
 
+	if len(param)+1 != valueOfCallback.Type().NumIn() {
+		return nil, C.CString("Improper number of parameters passed")
+	}
+
 	args := []reflect.Value{}
-	for i := 0; i < valueOfCallback.Type().NumIn(); i++ {
+	args = append(args, reflect.ValueOf(func(result *string, error_string error) {
+		jump_back_to_host(promise_id, result, error_string)
+	}))
+
+	offset := len(args)
+	for i := offset; i < valueOfCallback.Type().NumIn(); i++ {
 		arg := reflect.New(valueOfCallback.Type().In(i))
-		json.Unmarshal([]byte(param[i].Raw), arg.Interface())
+		err := json.Unmarshal([]byte(param[i-offset].Raw), arg.Interface())
+		if err != nil {
+			return nil, C.CString("Could not unmarshal input parameters")
+		}
 		args = append(args, arg.Elem())
 	}
 
-	res := valueOfCallback.Call(args)
+	_ = valueOfCallback.Call(args)
 
-	print(res)
-	// r1, err := res[0].Interface().(string), res[1].Interface().(error)
-	// if err != nil {
-	// 	return C.CString(r1), C.CString(err.Error())
-	// } else {
-	// 	return C.CString(r1), nil
-	// }
-
-	return C.CString(res[0].Interface().(string)), nil
+	// return C.CString(res[0].Interface().(string)), nil
+	return C.CString("not used1"), C.CString("not used2")
 }
 
-type mProtonApp interface {
+type ProtonApp interface {
 	Run()
 	// Destroy()
 	SetTitle(path string)
 	SetContent(path string)
 	SetContentPath(path string)
-	Bind(name string, callback interface{})
+	BindWithReply(name string, callback CallbackFunc)
 	SetMenuBarExtraText(name string)
 	AddMenuBarExtra(name string, tag int)
 	ExecuteScript(script string)
@@ -110,7 +141,7 @@ type mProtonApp interface {
 type mprotonHandle struct {
 }
 
-func New() mProtonApp {
+func New() ProtonApp {
 	runtime.LockOSThread()
 
 	h := &mprotonHandle{}
@@ -157,11 +188,11 @@ func (handle *mprotonHandle) SetContentPath(path string) {
 	C.prtn_set_content_path(c_path)
 }
 
-func (handle *mprotonHandle) Bind(name string, callback interface{}) {
+func (handle *mprotonHandle) BindWithReply(name string, callbackwithreply CallbackFunc) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
-	registerCallback(name, callback)
+	registerCallbackWithReply(name, callbackwithreply)
 	C.prtn_add_script_message_handler(c_name)
 }
 

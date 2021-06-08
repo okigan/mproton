@@ -99,12 +99,12 @@ extern "C" {
 #endif
 
 
-/* Return type for _prtn_call_into_go */
-struct _prtn_call_into_go_return {
+/* Return type for _prtn_call_into_go_with_reply */
+struct _prtn_call_into_go_with_reply_return {
 	char* r0;
 	char* r1;
 };
-extern struct _prtn_call_into_go_return _prtn_call_into_go(char* param1, char* param2);
+extern struct _prtn_call_into_go_with_reply_return _prtn_call_into_go_with_reply(char* obj);
 
 #ifdef __cplusplus
 }
