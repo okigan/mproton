@@ -300,7 +300,18 @@ int prtn_set_menu_extra_text(const char* text) { return 0; }
 
 int prtn_add_menu_extra_item(const char* text, int tag) { return 0; }
 
-int prtn_add_content_path(const char* path) {
+int prtn_set_content(const char* content) {
+    std::cout << "about to set content" << std::endl;
+
+    if (webview2 != NULL) {
+        webview2->NavigateToString(CA2T(content));
+
+        std::cout << "done navigate" << std::endl;
+    }
+    return 0;
+}
+
+int prtn_set_content_path(const char* path) {
     std::cout << "about to navigate" << std::endl;
 
     if (webview2 != NULL) {

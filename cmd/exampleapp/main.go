@@ -1,12 +1,15 @@
 package main
 
 import (
-	"fmt"
+	"embed"
 	"log"
 	"os"
 
 	"github.com/okigan/mproton"
 )
+
+//go:embed protonappui/dist/index.html
+var content embed.FS
 
 type User struct {
 	Name string
@@ -28,23 +31,26 @@ func main() {
 		return
 	}
 
-	// figure out where to load the content files from.
-	// this is not reliable as `go run` creates/runs files from /tmp location
-	// path, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	path, err := os.Getwd()
-	if err != nil {
-		println(err)
-	}
+	// // figure out where to load the content files from.
+	// // this is not reliable as `go run` creates/runs files from /tmp location
+	// // path, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	// path, err := os.Getwd()
+	// if err != nil {
+	// 	println(err)
+	// }
 
 	m := mproton.New()
 	m.SetTitle("mProton example ☄️")
 	m.Bind("mycallback1", mycallback1)
-	m.Bind(mproton.MenuItemCallbackName, func(param string) (string, error) {
-		log.Print("in mycallback2: ", param)
 
-		// notify UI by executing the script
-		m.ExecuteScript("console.log(\"hello from golang\")")
+	m.Bind(mproton.MenuItemCallbackName, func(param int) (string, error) {
+		log.Print("in lambda callback: ", param)
 
+		go func() {
+			log.Print("calling script from go coroutine: ", param)
+
+			m.ExecuteScript("console.log(\"hello from go coroutine\")")
+		}()
 		return "Done", nil
 	})
 
@@ -53,8 +59,14 @@ func main() {
 	m.SetMenuBarExtraText("☄️")
 	m.AddMenuBarExtra("Extra menu item ☄️!", 42)
 
+	data, ok := content.ReadFile("protonappui/dist/index.html")
+	if ok != nil {
+		println("could not load the contents")
+	}
+
 	// load the rest of the UI content
-	m.SetContentPath(fmt.Sprintf("file://%s/protonappui/dist/index.html", path))
+	m.SetContent(string(data))
+	// m.SetContentPath(fmt.Sprintf("file://%s/protonappui/dist/index.html", path))
 
 	m.Run()
 }

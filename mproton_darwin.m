@@ -225,7 +225,8 @@ static WKWebView * createWebView(NSRect frame, id handler) {
     const char *extractedExpr = [ sender.title UTF8String];
     const char *extractedExpr2 = [[NSString stringWithFormat:@"%ld", sender.tag] UTF8String];
     const char *callbackName = [@"MenuItemCallback" UTF8String];
-    _prtn_call_into_go((char*)callbackName, (char*)(extractedExpr2));
+    NSString* param = [NSString stringWithFormat:@"{\"name\": \"%@\", \"param\": %ld}}", @"MenuItemCallback", sender.tag];
+    _prtn_call_into_go(nil, (char*)[param UTF8String]);
 }
 @end
 
@@ -280,7 +281,20 @@ int prtn_add_menu_extra_item (const char* text, int tag) {
     return 0;
 }
 
-int prtn_add_content_path (const char* _Nullable path) {
+int prtn_set_content (const char* _Nullable content) {
+	// NSLog([NSString stringWithUTF8String:path]);
+
+    NSString * ns_content = [NSString stringWithUTF8String:content];
+    // NSLog(ns_content);
+
+     NSURL *baseUrl = [NSURL URLWithString:@""];
+
+    [g_appContext.webView loadHTMLString:ns_content baseURL:baseUrl];
+   
+    return 0;
+}
+
+int prtn_set_content_path (const char* _Nullable path) {
 	// NSLog([NSString stringWithUTF8String:path]);
 
     NSURL *url = [NSURL URLWithString:[NSString stringWithUTF8String:path] ];
@@ -303,9 +317,16 @@ int prtn_add_script_message_handler(const char * _Nullable name) {
 }
 
 int prtn_execute_script(const char * _Nullable script) {
+    NSLog(@"[objc %@] in prtn_execute_script", [NSThread currentThread]);
+
 	NSString * ns_script = [NSString stringWithUTF8String:script];
-    
-    executeJS(g_appContext.webView, ns_script);
+    dispatch_async(dispatch_get_main_queue(), ^{
+       NSLog(@"[objc %@] in prtn_execute_script", [NSThread currentThread]);
+
+        executeJS(g_appContext.webView, ns_script);
+    });
+
+    NSLog(@"[objc %@] in prtn_execute_script block dispatched", [NSThread currentThread]);
 
 	return 0;
 }

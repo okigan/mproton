@@ -68,6 +68,7 @@ func _prtn_call_into_go(param1 *C.char, param2 *C.char) (*C.char, *C.char) {
 
 	if !ok {
 		msg := fmt.Sprintf("No callback registered for: %s", name)
+		log.Print(msg)
 		return nil, C.CString(msg)
 	}
 
@@ -97,6 +98,7 @@ type mProtonApp interface {
 	Run()
 	// Destroy()
 	SetTitle(path string)
+	SetContent(path string)
 	SetContentPath(path string)
 	Bind(name string, callback interface{})
 	SetMenuBarExtraText(name string)
@@ -141,11 +143,18 @@ func (handle *mprotonHandle) AddMenuBarExtra(text string, tag int) {
 	C.prtn_add_menu_extra_item(c_text, C.int(tag))
 }
 
+func (handle *mprotonHandle) SetContent(content string) {
+	c_content := C.CString(content)
+	defer C.free(unsafe.Pointer(c_content))
+
+	C.prtn_set_content(c_content)
+}
+
 func (handle *mprotonHandle) SetContentPath(path string) {
 	c_path := C.CString(path)
 	defer C.free(unsafe.Pointer(c_path))
 
-	C.prtn_add_content_path(c_path)
+	C.prtn_set_content_path(c_path)
 }
 
 func (handle *mprotonHandle) Bind(name string, callback interface{}) {

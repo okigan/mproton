@@ -107,7 +107,13 @@ int prtn_set_menu_extra_text(const char* text) { return 0; }
 
 int prtn_add_menu_extra_item(const char* text, int tag) { return 0; }
 
-int prtn_add_content_path(const char* path) {
+int prtn_set_content(const char* path) {
+    webkit_web_view_load_html(webview, path, NULL);
+
+    return 0;
+}
+
+int prtn_set_content_path(const char* path) {
     webkit_web_view_load_uri(webview, path);
 
     return 0;
