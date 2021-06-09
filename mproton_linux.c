@@ -38,10 +38,10 @@ static gboolean handle_script_message(WebKitUserContentManager* manager,
     char* message_str;
 
     JSCValue* jsc_value = webkit_javascript_result_get_js_value(message);
-    const char* str = jsc_value_to_string(jsc_value);
+    const char* str = jsc_value_to_json(jsc_value, 2);
     g_print("Script message received for handler foo: %s\n", str);
 
-    _prtn_call_into_go(NULL, (char*)str);
+    _prtn_call_into_go_with_reply((char*)str);
 
     return TRUE;
 }
@@ -56,22 +56,35 @@ int prtn_initialize(void) {
     webkit_settings_set_enable_write_console_messages_to_stdout(settings, true);
     webkit_settings_set_enable_developer_extras(settings, true);
 
-    WebKitUserContentManager* manager =
-        webkit_web_view_get_user_content_manager(WEBKIT_WEB_VIEW(webview));
-    g_signal_connect(manager,
-                     "script-message-received::foobar",
-                     G_CALLBACK(handle_script_message),
-                     NULL);
-    webkit_user_content_manager_register_script_message_handler(manager, "foobar");
+    WebKitUserContentManager* manager = webkit_web_view_get_user_content_manager(WEBKIT_WEB_VIEW(webview));
+    g_signal_connect(manager, "script-message-received::mycallback1", G_CALLBACK(handle_script_message), NULL);
+    webkit_user_content_manager_register_script_message_handler(manager, "mycallback1");
 
-    WebKitUserScript* user_script = webkit_user_script_new(
-        "window.proton = { \"mycallback1\": { \"invoke\" : s => "
-        "webkit.messageHandlers.foobar.postMessage(s)}}",
+    char * user_script =
+        "var _proton_promises = {};  "
+        "var _proton_promiseSeq = 0;  "
+        "window.proton = {};"
+        "function _proton_genPromiseSequenceNumber() {  "
+        "    _proton_promiseSeq = _proton_promiseSeq + 1;  "
+        "    return _proton_promiseSeq;  "
+        "}  "
+        "function _proton_resolvePromise(promiseId, data, error) {  "
+        "    if (error) {  "
+        "        _proton_promises[promiseId].reject(error);  "
+        "    } else {  "
+        "        _proton_promises[promiseId].resolve(data);  "
+        "    }  "
+        "    delete _proton_promises[promiseId];  "
+        "}  ";
+
+
+    WebKitUserScript* user_script_obj = webkit_user_script_new(
+        user_script,
         WEBKIT_USER_CONTENT_INJECT_TOP_FRAME,
         WEBKIT_USER_SCRIPT_INJECT_AT_DOCUMENT_START,
         NULL,
         NULL);
-    webkit_user_content_manager_add_script(manager, user_script);
+    webkit_user_content_manager_add_script(manager, user_script_obj);
 
     // init("window.external={invoke:function(s){window.webkit.messageHandlers."
     // "external.postMessage(s);}}");
@@ -91,8 +104,8 @@ int prtn_initialize(void) {
     gtk_widget_show(menu_item1);
     gtk_widget_show(menu_item2);
 
-    AppIndicator* ci = app_indicator_new(
-        "test-application", "system-shutdown", APP_INDICATOR_CATEGORY_APPLICATION_STATUS);
+    AppIndicator* ci =
+        app_indicator_new("test-application", "system-shutdown", APP_INDICATOR_CATEGORY_APPLICATION_STATUS);
     app_indicator_set_status(ci, APP_INDICATOR_STATUS_ACTIVE);
     app_indicator_set_menu(ci, menu);
     return 0;
@@ -123,10 +136,25 @@ int prtn_add_script_message_handler(const char* name) {
     char script[2048] = "\0";
     snprintf(script,
              sizeof(script) / sizeof(script[0]),
-             "window.proton = { \"%s\": { \"invoke\" : s => "
-             "webkit.messageHandlers.foobar.postMessage(JSON.stringify({name: \"%s\", param: Array.prototype.slice.call(arguments)}))}}",
-             name,
-             name);
+                      "function _proton_%s_invoke(s) {  \n"
+                      "    var args = arguments;  \n"
+                      "    var promise = new Promise(function(resolve, reject) {  \n"
+                      "        var promiseId = _proton_genPromiseSequenceNumber();  \n"
+                      "        _proton_promises[promiseId] = { resolve, reject };  \n"
+                      "        window.webkit.messageHandlers.%s.postMessage({ promiseId: "
+                      "promiseId, name: \"%s\", param: Array.prototype.slice.call(args) });  \n"
+                      "    });  \n"
+                      "    return promise;  \n"
+                      "}  \n"
+                      "  \n"
+                      "window.proton['%s'] = {  \n"
+                      "    invoke: _proton_%s_invoke  \n"
+                      "}  ",
+                      name,
+                      name,
+                      name,
+                      name,
+                      name);
 
     WebKitUserScript* user_script =
         webkit_user_script_new(script,
@@ -135,11 +163,31 @@ int prtn_add_script_message_handler(const char* name) {
                                NULL,
                                NULL);
 
-    WebKitUserContentManager* manager =
-        webkit_web_view_get_user_content_manager(WEBKIT_WEB_VIEW(webview));
+    WebKitUserContentManager* manager = webkit_web_view_get_user_content_manager(WEBKIT_WEB_VIEW(webview));
     webkit_user_content_manager_add_script(manager, user_script);
 
     return 0;
 }
 
-int prtn_execute_script(const char* script) { return 0; }
+int prtn_execute_script(const char* script) {
+    printf("in prtn_execute_script");
+
+    webkit_web_view_run_javascript(WEBKIT_WEB_VIEW(webview), script, NULL, NULL, NULL);
+
+    return 0;
+}
+
+int prtn_resolve(const char* promiseId, const char* result, const char* error) {
+    printf("in prtn_resolve: %s, %s, %s\n", promiseId, result, error);
+
+    char buf[4 * 1024] = "\n";
+    if (error != NULL) {
+        sprintf(buf, "_proton_resolvePromise(%s,null, '%s');", promiseId, error);
+    } else {
+        sprintf(buf, "_proton_resolvePromise(%s,'%s', null);", promiseId, result);
+    }
+
+    prtn_execute_script(buf);
+
+    return 0;
+}

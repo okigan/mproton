@@ -1,32 +1,30 @@
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 UNAME := $(shell uname)
 
+.PHONY:all
+all: mproton_cgo_exports.h build-ui build self-test
+
 mproton_cgo_exports.h:
 	go tool cgo -exportheader mproton_cgo_exports.h mproton.go
 
-.PHONY: install
-install:
+.PHONY: setup-dev-env
+setup-dev-env:
 	$(ROOT_DIR)/scripts/$(UNAME)/install
-	
+	$(MAKE) -C ./cmd/exampleapp/protonappui setup-dev-env
 
-.PHONY: install-ui
-install-ui:
-	cd cmd/exampleapp/protonappui && yarn install
+.PHONY: install-build-deps
+install-build-deps:
+	$(MAKE) -C ./cmd/exampleapp/protonappui install-build-deps
 
 .PHONY: build-ui
 build-ui:
-	cd cmd/exampleapp/protonappui && yarn build
+	$(MAKE) -C ./cmd/exampleapp/protonappui build
 
 .PHONY: build 
 build:
-	go build -v ./...
+	cd ./cmd/exampleapp && go build -v
 
-
-.PHONY: build-exampleapp
-build-exampleapp:
-	cd $(ROOT_DIR)/cmd/exampleapp && go build -v ./...
-
-.PHONY: self-test
-self-test: build-exampleapp
+.PHONY: build
+self-test: 
 	$(ROOT_DIR)/cmd/exampleapp/exampleapp --self-test
 

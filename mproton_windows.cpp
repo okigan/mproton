@@ -172,8 +172,8 @@ class Handler : public ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandle
         LPWSTR message = NULL;
         args->get_WebMessageAsJson(&message);
 
-        struct _prtn_call_into_go_return result =
-            _prtn_call_into_go((char*)CW2A(source), (char*)CW2A(message));
+        struct _prtn_call_into_go_with_reply_return  result =
+            _prtn_call_into_go_with_reply((char*)CW2A(message));
 
         std::cout << "posting result: " << result.r1 << std::endl;
         sender->PostWebMessageAsString(CA2T(result.r1));
@@ -349,6 +349,11 @@ int prtn_add_script_message_handler(const char* name) {
 }
 
 int prtn_execute_script(const char* script) { return 0; }
+}
+
+int prtn_resolve(const char * promiseId, const char * result, const char * error) {
+    return 0;
+
 }
 
 #ifdef STANDALONEPROG

@@ -91,6 +91,7 @@ func _prtn_call_into_go_with_reply(obj *C.char) (*C.char, *C.char) {
 	if !ok {
 		msg := fmt.Sprintf("No callback registered for: %s", name)
 		log.Print(msg)
+		return nil, C.CString(msg)
 	}
 
 	// this is what following code will try to do through reflection
