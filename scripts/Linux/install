@@ -1,0 +1,20 @@
+#!/bin/bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+set -o xtrace
+
+uname -a
+
+apt update
+apt install -y software-properties-common
+
+add-apt-repository -y ppa:longsleep/golang-backports
+apt update
+apt install -y golang-go 
+
+apt install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev
+
+
+npm version

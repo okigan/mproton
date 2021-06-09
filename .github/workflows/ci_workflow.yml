@@ -1,0 +1,44 @@
+name: CI
+
+on: [push,pull_request,workflow_dispatch]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        go: [ '1.16']
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.REPO_PAT }}
+          submodules: true
+      - name: Setup go
+        uses: actions/setup-go@v1
+        with:
+          go-version: ${{ matrix.go }}
+      - name: step1
+        run: bash -c "pwd;  ls -la"
+      - if: matrix.os == 'macos-latest'
+        run: |
+          make install-build-deps build-ui build
+          make self-test
+      - if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo make setup-build-env
+          make install-build-deps build-ui build
+          make self-test
+      - if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2/1.0.864.35 -OutFile Microsoft.Web.WebView2.Sdk.zip
+          Expand-Archive ./Microsoft.Web.WebView2.Sdk.zip
+          Copy-Item ./Microsoft.Web.WebView2.Sdk/build/native/x64/WebView2Loader.dll -Destination ./cmd/exampleapp
+      - if: matrix.os == 'windows-latest'
+        shell: cmd
+        run: |
+          build.bat
