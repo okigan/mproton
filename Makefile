@@ -7,10 +7,11 @@ all: mproton_cgo_exports.h build-ui build self-test
 mproton_cgo_exports.h:
 	go tool cgo -exportheader mproton_cgo_exports.h mproton.go
 
-.PHONY: setup-dev-env
-setup-dev-env:
+.PHONY: setup-build-env
+setup-build-env:
 	$(ROOT_DIR)/scripts/$(UNAME)/install
-	$(MAKE) -C ./cmd/exampleapp/protonappui setup-dev-env
+	$(MAKE) -C ./cmd/exampleapp/protonappui setup-build-env
+	
 
 .PHONY: install-build-deps
 install-build-deps:
@@ -22,7 +23,7 @@ build-ui:
 
 .PHONY: build 
 build:
-	cd ./cmd/exampleapp && go build -v
+	cd $(ROOT_DIR)/cmd/exampleapp/ && go build -v
 
 .PHONY: build
 self-test: 

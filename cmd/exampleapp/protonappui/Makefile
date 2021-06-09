@@ -1,12 +1,11 @@
 .PHONY:all
 
-.PHONY:setup-dev-env
-setup-dev-env:
+.PHONY:setup-build-env
+setup-build-env:
 	npm install yarn
 
-.PHONY:install-dev-deps
 install-build-deps:
-	./node_modules/.bin/yarn install
+	PATH=./node_modules/.bin/:$(PATH) yarn install
 
 build:
-	./node_modules/.bin/yarn build
+	PATH=./node_modules/.bin/:$(PATH) yarn build
