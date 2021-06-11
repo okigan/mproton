@@ -11,6 +11,8 @@
 cmd/exampleapp/exampleapp
 cmd/exampleapp/exampleapp.exe
 cmd/exampleapp/WebView2Loader.dll
+cmd/exampleappgrpc/client/client
+cmd/exampleappgrpc/exampleappgrpc
 **/__debug_bin
 **/EBWebView
 
@@ -58,3 +60,4 @@ fastlane/test_output
 **/Microsoft.Web.WebView2.Sdk
 **/Microsoft.Web.WebView2.Sdk.zip
 WebView2Loader.dll
+mproton_darwin.m

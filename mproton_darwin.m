@@ -320,13 +320,19 @@ int prtn_set_content(const char* _Nullable content) {
 }
 
 int prtn_set_content_path(const char* _Nullable path) {
-    // NSLog([NSString stringWithUTF8String:path]);
+    NSLog([NSString stringWithUTF8String:path]);
 
-    NSURL* url = [NSURL URLWithString:[NSString stringWithUTF8String:path]];
-    NSString* html = [NSString stringWithContentsOfURL:url encoding:NSUTF8StringEncoding error:nil];
-    NSURL* baseUrl = [NSURL URLWithString:@""];
+    // NSURL* url = [NSURL URLWithString:[NSString stringWithUTF8String:path]];
+    // NSString* html = [NSString stringWithContentsOfURL:url encoding:NSUTF8StringEncoding error:nil];
+    // NSURL* baseUrl = [NSURL URLWithString:@""];
 
-    [g_appContext.webView loadHTMLString:html baseURL:baseUrl];
+    // [g_appContext.webView loadHTMLString:html baseURL:baseUrl];
+
+
+    NSString *urlAddress = [NSString stringWithUTF8String:path];
+    NSURL *url = [NSURL URLWithString:urlAddress];
+    NSURLRequest *requestObj = [NSURLRequest requestWithURL:url];
+    [g_appContext.webView loadRequest:requestObj];
 
     return 0;
 }
